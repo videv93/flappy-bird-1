@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>flappy-bird-1 - Design Directions</title>
+  <style>
+    :root {
+      --primary: #d97706;
+      --primary-light: #fcd34d;
+      --secondary: #c2410c;
+      --background: #fffbeb;
+      --surface: #fefce8;
+      --text: #451a03;
+      --text-muted: #78350f;
+      --author-shimmer: #eab308;
+      --author-text: #92400e;
+      --streak: #16a34a;
+      --kudos: #f97316;
+      --presence: #fbbf24;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .header {
+      background: var(--surface);
+      padding: 24px;
+      border-bottom: 1px solid rgba(69, 26, 3, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      background: var(--background);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      border-color: var(--primary-light);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .mockup-container {
+      max-width: 420px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .mockup {
+      display: none;
+    }
+
+    .mockup.active {
+      display: block;
+    }
+
+    .phone-frame {
+      background: #1c1917;
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+
+    .phone-screen {
+      background: var(--background);
+      border-radius: 32px;
+      overflow: hidden;
+      min-height: 700px;
+      position: relative;
+    }
+
+    /* Direction 1: Cozy Minimal */
+    .d1-header {
+      background: var(--surface);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .d1-streak {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .d1-streak-ring {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 3px solid var(--streak);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .d1-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    .d1-content {
+      padding: 20px;
+    }
+
+    .d1-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .d1-book-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(69, 26, 3, 0.08);
+    }
+
+    .d1-book-card.author-present {
+      box-shadow: 0 0 0 2px var(--author-shimmer), 0 4px 20px rgba(234, 179, 8, 0.3);
+    }
+
+    .d1-book-header {
+      display: flex;
+      gap: 12px;
+    }
+
+    .d1-book-cover {
+      width: 60px;
+      height: 90px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .d1-book-info h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .d1-book-info p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .d1-author-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(234, 179, 8, 0.15);
+      color: var(--author-text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 12px;
+      margin-top: 8px;
+    }
+
+    .d1-presence {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(69, 26, 3, 0.08);
+    }
+
+    .d1-presence-avatars {
+      display: flex;
+    }
+
+    .d1-presence-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      border: 2px solid var(--surface);
+      margin-left: -8px;
+    }
+
+    .d1-presence-avatar:first-child {
+      margin-left: 0;
+    }
+
+    .d1-presence-text {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .d1-cta {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 12px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .d1-bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-around;
+      border-top: 1px solid rgba(69, 26, 3, 0.08);
+    }
+
+    .d1-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .d1-nav-item.active {
+      color: var(--primary);
+    }
+
+    .d1-nav-icon {
+      width: 24px;
+      height: 24px;
+      background: currentColor;
+      border-radius: 4px;
+      opacity: 0.6;
+    }
+
+    /* Direction 2: Dense Library */
+    .d2-header {
+      background: var(--surface);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(69, 26, 3, 0.08);
+    }
+
+    .d2-header h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .d2-stats {
+      display: flex;
+      gap: 16px;
+      padding: 12px 16px;
+      background: var(--surface);
+    }
+
+    .d2-stat {
+      text-align: center;
+    }
+
+    .d2-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .d2-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .d2-tabs {
+      display: flex;
+      padding: 0 16px;
+      gap: 4px;
+      background: var(--surface);
+      border-bottom: 1px solid rgba(69, 26, 3, 0.08);
+    }
+
+    .d2-tab {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+    }
+
+    .d2-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .d2-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .d2-book-tile {
+      aspect-ratio: 2/3;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .d2-book-tile.author-present::after {
+      content: '✨';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 12px;
+    }
+
+    .d2-presence-badge {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+
+    /* Direction 3: Feed-Forward */
+    .d3-header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 20px;
+    }
+
+    .d3-header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .d3-tabs {
+      display: flex;
+      background: var(--primary);
+      padding: 0 20px;
+    }
+
+    .d3-tab {
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      border-bottom: 2px solid transparent;
+    }
+
+    .d3-tab.active {
+      color: white;
+      border-bottom-color: white;
+    }
+
+    .d3-feed {
+      padding: 16px;
+    }
+
+    .d3-feed-item {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .d3-feed-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .d3-feed-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary-light);
+    }
+
+    .d3-feed-user {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .d3-feed-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .d3-feed-content {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .d3-feed-book {
+      display: flex;
+      gap: 12px;
+      background: var(--background);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .d3-feed-cover {
+      width: 48px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 4px;
+    }
+
+    .d3-feed-actions {
+      display: flex;
+      gap: 24px;
+    }
+
+    .d3-action {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .d3-action.kudos {
+      color: var(--kudos);
+    }
+
+    .d3-fab {
+      position: absolute;
+      bottom: 80px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+    }
+
+    /* Direction 4: Book-Centric */
+    .d4-hero {
+      background: linear-gradient(to bottom, var(--primary), var(--secondary));
+      padding: 40px 20px;
+      text-align: center;
+      color: white;
+    }
+
+    .d4-book-cover {
+      width: 140px;
+      height: 210px;
+      background: var(--surface);
+      border-radius: 8px;
+      margin: 0 auto 16px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+    }
+
+    .d4-book-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .d4-book-author {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .d4-room-panel {
+      background: var(--surface);
+      margin: -20px 16px 0;
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(69, 26, 3, 0.08);
+    }
+
+    .d4-room-panel.author-present {
+      box-shadow: 0 0 0 2px var(--author-shimmer), 0 4px 20px rgba(234, 179, 8, 0.3);
+    }
+
+    .d4-room-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .d4-room-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .d4-room-count {
+      background: var(--presence);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .d4-readers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .d4-reader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .d4-reader-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      position: relative;
+    }
+
+    .d4-reader-avatar.author {
+      border: 2px solid var(--author-shimmer);
+      box-shadow: 0 0 12px var(--author-shimmer);
+    }
+
+    .d4-reader-avatar::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background: var(--streak);
+      border-radius: 50%;
+      border: 2px solid var(--surface);
+    }
+
+    .d4-reader-name {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .d4-actions {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .d4-action-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    .d4-action-btn.primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .d4-action-btn.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid rgba(69, 26, 3, 0.1);
+    }
+
+    /* Toast notification demo */
+    .toast-demo {
+      position: absolute;
+      top: 60px;
+      left: 16px;
+      right: 16px;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border-left: 4px solid var(--author-shimmer);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .toast-icon {
+      font-size: 20px;
+    }
+
+    .toast-text {
+      font-size: 14px;
+    }
+
+    .toast-text strong {
+      color: var(--author-text);
+    }
+
+    /* Description panels */
+    .direction-info {
+      max-width: 420px;
+      margin: 0 auto 24px;
+      padding: 0 16px;
+    }
+
+    .direction-info h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .direction-info p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .pros h4, .cons h4 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .pros h4 { color: var(--streak); }
+    .cons h4 { color: var(--kudos); }
+
+    .pros ul, .cons ul {
+      list-style: none;
+      font-size: 13px;
+    }
+
+    .pros li::before { content: '✓ '; color: var(--streak); }
+    .cons li::before { content: '• '; color: var(--kudos); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>flappy-bird-1 Design Directions</h1>
+    <p>Explore different visual approaches for your social reading app</p>
+    <div class="tabs">
+      <button class="tab active" onclick="showMockup(1)">1. Cozy Minimal</button>
+      <button class="tab" onclick="showMockup(2)">2. Dense Library</button>
+      <button class="tab" onclick="showMockup(3)">3. Feed-Forward</button>
+      <button class="tab" onclick="showMockup(4)">4. Book-Centric</button>
+    </div>
+  </div>
+
+  <!-- Direction 1: Cozy Minimal -->
+  <div class="mockup active" id="mockup1">
+    <div class="direction-info">
+      <h2>Direction 1: Cozy Minimal</h2>
+      <p>Clean, generous whitespace with Instagram-like simplicity. Emphasizes calm and belonging through spacious layout.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Strengths</h4>
+          <ul>
+            <li>Maximum calm feeling</li>
+            <li>Easy to scan</li>
+            <li>Mobile-first native</li>
+            <li>Focus on one book</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Considerations</h4>
+          <ul>
+            <li>Less info density</li>
+            <li>More scrolling needed</li>
+            <li>Simple may feel empty</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-container">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="d1-header">
+            <div class="d1-streak">
+              <div class="d1-streak-ring">7</div>
+              <span style="font-size: 13px; font-weight: 500;">day streak</span>
+            </div>
+            <div class="d1-avatar"></div>
+          </div>
+          <div class="d1-content">
+            <div class="d1-section-title">Currently Reading</div>
+            <div class="d1-book-card author-present">
+              <div class="d1-book-header">
+                <div class="d1-book-cover"></div>
+                <div class="d1-book-info">
+                  <h3>Project Hail Mary</h3>
+                  <p>Andy Weir</p>
+                  <div class="d1-author-badge">✨ Author was here 3h ago</div>
+                </div>
+              </div>
+              <div class="d1-presence">
+                <div class="d1-presence-avatars">
+                  <div class="d1-presence-avatar"></div>
+                  <div class="d1-presence-avatar"></div>
+                  <div class="d1-presence-avatar"></div>
+                  <div class="d1-presence-avatar"></div>
+                </div>
+                <span class="d1-presence-text">4 reading now</span>
+              </div>
+              <button class="d1-cta">Join Reading Room</button>
+            </div>
+
+            <div class="d1-section-title">Up Next</div>
+            <div class="d1-book-card">
+              <div class="d1-book-header">
+                <div class="d1-book-cover" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);"></div>
+                <div class="d1-book-info">
+                  <h3>The Martian</h3>
+                  <p>Andy Weir</p>
+                </div>
+              </div>
+              <div class="d1-presence">
+                <div class="d1-presence-avatars">
+                  <div class="d1-presence-avatar"></div>
+                  <div class="d1-presence-avatar"></div>
+                </div>
+                <span class="d1-presence-text">2 reading now</span>
+              </div>
+            </div>
+          </div>
+          <div class="d1-bottom-nav">
+            <div class="d1-nav-item active">
+              <div class="d1-nav-icon"></div>
+              Home
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Search
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Library
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Activity
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Profile
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direction 2: Dense Library -->
+  <div class="mockup" id="mockup2">
+    <div class="direction-info">
+      <h2>Direction 2: Dense Library</h2>
+      <p>Grid-based layout showing more books at once. StoryGraph-like information density with warm colors.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Strengths</h4>
+          <ul>
+            <li>See more books</li>
+            <li>Efficient for power users</li>
+            <li>Stats-forward</li>
+            <li>Library feel</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Considerations</h4>
+          <ul>
+            <li>Less calm feeling</li>
+            <li>Smaller touch targets</li>
+            <li>Presence less visible</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-container">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="d2-header">
+            <h1>My Library</h1>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <div class="d1-streak-ring" style="width: 32px; height: 32px; font-size: 11px;">7</div>
+              <div class="d1-avatar" style="width: 32px; height: 32px;"></div>
+            </div>
+          </div>
+          <div class="d2-stats">
+            <div class="d2-stat">
+              <div class="d2-stat-value">24</div>
+              <div class="d2-stat-label">Books Read</div>
+            </div>
+            <div class="d2-stat">
+              <div class="d2-stat-value">7</div>
+              <div class="d2-stat-label">Day Streak</div>
+            </div>
+            <div class="d2-stat">
+              <div class="d2-stat-value">156</div>
+              <div class="d2-stat-label">Kudos Given</div>
+            </div>
+            <div class="d2-stat">
+              <div class="d2-stat-value">89</div>
+              <div class="d2-stat-label">Kudos Received</div>
+            </div>
+          </div>
+          <div class="d2-tabs">
+            <div class="d2-tab active">Reading</div>
+            <div class="d2-tab">Want to Read</div>
+            <div class="d2-tab">Finished</div>
+          </div>
+          <div class="d2-grid">
+            <div class="d2-book-tile author-present">
+              <div class="d2-presence-badge">4 👥</div>
+            </div>
+            <div class="d2-book-tile">
+              <div class="d2-presence-badge">2 👥</div>
+            </div>
+            <div class="d2-book-tile">
+              <div class="d2-presence-badge">7 👥</div>
+            </div>
+            <div class="d2-book-tile"></div>
+            <div class="d2-book-tile author-present">
+              <div class="d2-presence-badge">12 👥</div>
+            </div>
+            <div class="d2-book-tile"></div>
+            <div class="d2-book-tile">
+              <div class="d2-presence-badge">1 👥</div>
+            </div>
+            <div class="d2-book-tile"></div>
+            <div class="d2-book-tile"></div>
+          </div>
+          <div class="d1-bottom-nav">
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Home
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Search
+            </div>
+            <div class="d1-nav-item active">
+              <div class="d1-nav-icon"></div>
+              Library
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Activity
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Profile
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direction 3: Feed-Forward -->
+  <div class="mockup" id="mockup3">
+    <div class="direction-info">
+      <h2>Direction 3: Feed-Forward</h2>
+      <p>Activity feed as the primary view. Social-first approach like Twitter/Strava with reading sessions in timeline.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Strengths</h4>
+          <ul>
+            <li>Maximizes social</li>
+            <li>Familiar pattern</li>
+            <li>Discovery-friendly</li>
+            <li>Engagement-driven</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Considerations</h4>
+          <ul>
+            <li>Less book-focused</li>
+            <li>May feel noisy</li>
+            <li>Reading rooms secondary</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-container">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="d3-header">
+            <h1>Activity</h1>
+          </div>
+          <div class="d3-tabs">
+            <div class="d3-tab active">Following</div>
+            <div class="d3-tab">For You</div>
+            <div class="d3-tab">Authors</div>
+          </div>
+          <div class="d3-feed">
+            <div class="d3-feed-item">
+              <div class="d3-feed-header">
+                <div class="d3-feed-avatar"></div>
+                <div>
+                  <div class="d3-feed-user">Sarah M.</div>
+                  <div class="d3-feed-time">2 hours ago</div>
+                </div>
+              </div>
+              <div class="d3-feed-content">Just finished chapter 12! This book is incredible 📚</div>
+              <div class="d3-feed-book">
+                <div class="d3-feed-cover"></div>
+                <div>
+                  <div style="font-weight: 600; font-size: 14px;">Project Hail Mary</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Andy Weir</div>
+                  <div style="font-size: 11px; color: var(--presence); margin-top: 4px;">4 in reading room</div>
+                </div>
+              </div>
+              <div class="d3-feed-actions">
+                <div class="d3-action kudos">❤️ 12</div>
+                <div class="d3-action">💬 3</div>
+                <div class="d3-action">📖 Join room</div>
+              </div>
+            </div>
+            <div class="d3-feed-item">
+              <div class="d3-feed-header">
+                <div class="d3-feed-avatar" style="background: var(--author-shimmer);"></div>
+                <div>
+                  <div class="d3-feed-user">Andy Weir ✨</div>
+                  <div class="d3-feed-time">5 hours ago</div>
+                </div>
+              </div>
+              <div class="d3-feed-content">Love seeing you all reading! Just popped into the Hail Mary room 🚀</div>
+              <div class="d3-feed-actions">
+                <div class="d3-action kudos">❤️ 847</div>
+                <div class="d3-action">💬 156</div>
+              </div>
+            </div>
+          </div>
+          <div class="d3-fab">+</div>
+          <div class="d1-bottom-nav">
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Home
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Search
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Library
+            </div>
+            <div class="d1-nav-item active">
+              <div class="d1-nav-icon"></div>
+              Activity
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Profile
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direction 4: Book-Centric -->
+  <div class="mockup" id="mockup4">
+    <div class="direction-info">
+      <h2>Direction 4: Book-Centric</h2>
+      <p>Hero book cover with reading room underneath. Immersive focus on the current reading experience.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Strengths</h4>
+          <ul>
+            <li>Maximum immersion</li>
+            <li>Book is the star</li>
+            <li>Room feels central</li>
+            <li>Author shimmer shines</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Considerations</h4>
+          <ul>
+            <li>One book at a time</li>
+            <li>Needs book switching UI</li>
+            <li>Less overview</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-container">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="toast-demo">
+            <span class="toast-icon">✨</span>
+            <span class="toast-text"><strong>Andy Weir</strong> joined the reading room</span>
+          </div>
+          <div class="d4-hero">
+            <div class="d4-book-cover"></div>
+            <div class="d4-book-title">Project Hail Mary</div>
+            <div class="d4-book-author">Andy Weir</div>
+          </div>
+          <div class="d4-room-panel author-present">
+            <div class="d4-room-header">
+              <div class="d4-room-title">Reading Room</div>
+              <div class="d4-room-count">5 here now</div>
+            </div>
+            <div class="d4-readers">
+              <div class="d4-reader">
+                <div class="d4-reader-avatar author"></div>
+                <span class="d4-reader-name">Andy W. ✨</span>
+              </div>
+              <div class="d4-reader">
+                <div class="d4-reader-avatar"></div>
+                <span class="d4-reader-name">Sarah M.</span>
+              </div>
+              <div class="d4-reader">
+                <div class="d4-reader-avatar"></div>
+                <span class="d4-reader-name">Mike T.</span>
+              </div>
+              <div class="d4-reader">
+                <div class="d4-reader-avatar"></div>
+                <span class="d4-reader-name">Lisa K.</span>
+              </div>
+              <div class="d4-reader">
+                <div class="d4-reader-avatar"></div>
+                <span class="d4-reader-name">You</span>
+              </div>
+            </div>
+          </div>
+          <div class="d4-actions">
+            <button class="d4-action-btn primary">Start Reading</button>
+            <button class="d4-action-btn secondary">Send Kudos</button>
+          </div>
+          <div class="d1-bottom-nav">
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Home
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Search
+            </div>
+            <div class="d1-nav-item active">
+              <div class="d1-nav-icon"></div>
+              Reading
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Activity
+            </div>
+            <div class="d1-nav-item">
+              <div class="d1-nav-icon"></div>
+              Profile
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showMockup(num) {
+      // Hide all mockups
+      document.querySelectorAll('.mockup').forEach(m => m.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+      // Show selected
+      document.getElementById('mockup' + num).classList.add('active');
+      document.querySelectorAll('.tab')[num - 1].classList.add('active');
+    }
+  </script>
+</body>
+</html>

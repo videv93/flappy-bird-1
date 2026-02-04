@@ -1,0 +1,102 @@
+# generated: 2026-02-04
+# project: flappy-bird-1
+# tracking_system: file-system
+# story_location: /opt/apps/flappy-bird-1/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-02-04
+project: flappy-bird-1
+tracking_system: file-system
+story_location: /opt/apps/flappy-bird-1/_bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Project Foundation & User Authentication
+  epic-1: in-progress
+  1-1-project-initialization-core-infrastructure: in-progress
+  1-2-oauth-authentication-with-google: done
+  1-3-oauth-authentication-with-apple: backlog
+  1-4-user-profile-management: backlog
+  1-5-bottom-navigation-app-shell: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Book Library & Discovery
+  epic-2: backlog
+  2-1-book-search-via-external-apis: backlog
+  2-2-add-book-to-library: backlog
+  2-3-book-detail-page: backlog
+  2-4-update-reading-status: backlog
+  2-5-remove-book-from-library: backlog
+  2-6-library-view-organization: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Reading Sessions & Habit Tracking
+  epic-3: backlog
+  3-1-session-timer-with-persistence: backlog
+  3-2-save-reading-session: backlog
+  3-3-session-history: backlog
+  3-4-daily-reading-goal: backlog
+  3-5-streak-ring-display: backlog
+  3-6-streak-credit-reset-logic: backlog
+  3-7-streak-freeze: backlog
+  3-8-streak-history: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Social Connections & Activity Feed
+  epic-4: backlog
+  4-1-follow-unfollow-users: backlog
+  4-2-view-other-user-profiles: backlog
+  4-3-activity-feed: backlog
+  4-4-give-kudos: backlog
+  4-5-kudos-notifications: backlog
+  4-6-view-kudos-received: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Reading Rooms & Author Presence
+  epic-5: backlog
+  5-1-pusher-presence-channel-spike: backlog
+  5-2-join-reading-room: backlog
+  5-3-see-room-occupants: backlog
+  5-4-leave-reading-room: backlog
+  5-5-author-claim-verification: backlog
+  5-6-author-presence-display: backlog
+  5-7-author-join-notification: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Administration & Platform Health
+  epic-6: backlog
+  6-1-admin-role-access-control: backlog
+  6-2-moderation-queue: backlog
+  6-3-content-removal: backlog
+  6-4-user-warnings-suspension: backlog
+  6-5-author-verification-review: backlog
+  6-6-platform-health-metrics: backlog
+  6-7-user-session-lookup: backlog
+  epic-6-retrospective: optional

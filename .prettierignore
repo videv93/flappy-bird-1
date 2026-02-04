@@ -1,0 +1,16 @@
+# dependencies
+node_modules
+
+# builds
+.next
+out
+build
+
+# generated files
+src/generated
+*.tsbuildinfo
+next-env.d.ts
+
+# misc
+.vercel
+coverage
