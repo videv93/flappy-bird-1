@@ -10,15 +10,17 @@ datasource db {
 }
 
 model User {
-  id                String    @id @default(cuid())
-  email             String    @unique
-  emailVerified     Boolean   @default(false) @map("email_verified")
-  name              String?
-  bio               String?
-  avatarUrl         String?   @map("avatar_url")
-  applePrivateRelay Boolean   @default(false) @map("apple_private_relay")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  emailVerified       Boolean   @default(false) @map("email_verified")
+  name                String?
+  bio                 String?
+  avatarUrl           String?   @map("avatar_url")
+  applePrivateRelay   Boolean   @default(false) @map("apple_private_relay")
+  favoriteGenres      String[]  @default([]) @map("favorite_genres")
+  showReadingActivity Boolean   @default(true) @map("show_reading_activity")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
   sessions Session[]
   accounts Account[]
