@@ -4,14 +4,30 @@ import { useCallback } from 'react';
 import { BookOpen } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { AddToLibraryButton } from './AddToLibraryButton';
 import type { BookSearchResult as BookSearchResultType } from '@/services/books/types';
+import type { ReadingStatus } from '@prisma/client';
 
 interface BookSearchResultProps {
+  /** Book data from search */
   book: BookSearchResultType;
+  /** Optional click handler for navigating to book details */
   onClick?: (book: BookSearchResultType) => void;
+  /** Whether the book is already in the user's library */
+  isInLibrary?: boolean;
+  /** Current reading status if book is in library */
+  currentStatus?: ReadingStatus;
+  /** Callback when book is added to library */
+  onAdd?: (status: ReadingStatus) => void;
 }
 
-export function BookSearchResult({ book, onClick }: BookSearchResultProps) {
+export function BookSearchResult({
+  book,
+  onClick,
+  isInLibrary,
+  currentStatus,
+  onAdd,
+}: BookSearchResultProps) {
   const { title, authors, publishedYear, coverUrl } = book;
 
   const handleClick = useCallback(() => {
@@ -72,6 +88,21 @@ export function BookSearchResult({ book, onClick }: BookSearchResultProps) {
             {publishedYear}
           </p>
         )}
+      </div>
+
+      {/* Add to Library button */}
+      <div
+        className="flex-shrink-0 self-center"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <AddToLibraryButton
+          book={book}
+          isInLibrary={isInLibrary}
+          currentStatus={currentStatus}
+          onStatusChange={onAdd}
+          onViewInLibrary={() => onClick?.(book)}
+        />
       </div>
     </div>
   );

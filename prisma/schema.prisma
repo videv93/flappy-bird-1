@@ -10,6 +10,13 @@ datasource db {
   provider = "postgresql"
 }
 
+// Reading status enum for UserBook
+enum ReadingStatus {
+  CURRENTLY_READING
+  FINISHED
+  WANT_TO_READ
+}
+
 model User {
   id                  String    @id @default(cuid())
   email               String    @unique
@@ -24,8 +31,9 @@ model User {
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
-  sessions Session[]
-  accounts Account[]
+  sessions  Session[]
+  accounts  Account[]
+  userBooks UserBook[]
 
   @@map("users")
 }
@@ -72,4 +80,44 @@ model Verification {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("verifications")
+}
+
+model Book {
+  id            String     @id @default(cuid())
+  isbn10        String?    @unique @map("isbn_10")
+  isbn13        String?    @unique @map("isbn_13")
+  title         String
+  author        String
+  coverUrl      String?    @map("cover_url")
+  pageCount     Int?       @map("page_count")
+  publishedYear Int?       @map("published_year")
+  description   String?
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  userBooks UserBook[]
+
+  @@index([isbn10])
+  @@index([isbn13])
+  @@map("books")
+}
+
+model UserBook {
+  id           String        @id @default(cuid())
+  userId       String        @map("user_id")
+  bookId       String        @map("book_id")
+  status       ReadingStatus @default(WANT_TO_READ)
+  progress     Int           @default(0)
+  dateAdded    DateTime      @default(now()) @map("date_added")
+  dateFinished DateTime?     @map("date_finished")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId])
+  @@index([bookId])
+  @@map("user_books")
 }

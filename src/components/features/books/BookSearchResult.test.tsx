@@ -1,7 +1,28 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BookSearchResult } from './BookSearchResult';
 import type { BookSearchResult as BookSearchResultType } from '@/services/books/types';
+
+// Mock AddToLibraryButton to avoid mocking all its dependencies
+vi.mock('./AddToLibraryButton', () => ({
+  AddToLibraryButton: vi.fn(({ isInLibrary, currentStatus, onStatusChange, onViewInLibrary }) => (
+    <button
+      data-testid="add-to-library-button"
+      data-in-library={isInLibrary ? 'true' : 'false'}
+      data-status={currentStatus || ''}
+      onClick={() => {
+        if (isInLibrary) {
+          onViewInLibrary?.();
+        } else {
+          onStatusChange?.('CURRENTLY_READING');
+        }
+      }}
+    >
+      {isInLibrary ? `In Library: ${currentStatus}` : 'Add to Library'}
+    </button>
+  )),
+}));
 
 const mockBook: BookSearchResultType = {
   id: '/works/OL123W',
@@ -133,7 +154,60 @@ describe('BookSearchResult', () => {
 
     expect(handleClick).toHaveBeenCalled();
   });
-});
 
-// Need to import vi for the mock function
-import { vi } from 'vitest';
+  describe('AddToLibraryButton integration', () => {
+    it('renders AddToLibraryButton component', () => {
+      render(<BookSearchResult book={mockBook} />);
+
+      expect(screen.getByTestId('add-to-library-button')).toBeInTheDocument();
+    });
+
+    it('passes isInLibrary prop to AddToLibraryButton', () => {
+      render(<BookSearchResult book={mockBook} isInLibrary={true} currentStatus="FINISHED" />);
+
+      const button = screen.getByTestId('add-to-library-button');
+      expect(button).toHaveAttribute('data-in-library', 'true');
+      expect(button).toHaveAttribute('data-status', 'FINISHED');
+    });
+
+    it('passes onAdd callback to AddToLibraryButton', async () => {
+      const user = userEvent.setup();
+      const onAdd = vi.fn();
+      render(<BookSearchResult book={mockBook} onAdd={onAdd} />);
+
+      await user.click(screen.getByTestId('add-to-library-button'));
+
+      expect(onAdd).toHaveBeenCalledWith('CURRENTLY_READING');
+    });
+
+    it('does not trigger onClick when AddToLibraryButton is clicked', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      const onAdd = vi.fn();
+      render(<BookSearchResult book={mockBook} onClick={onClick} onAdd={onAdd} />);
+
+      await user.click(screen.getByTestId('add-to-library-button'));
+
+      expect(onAdd).toHaveBeenCalled();
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('calls onClick when in-library button is clicked (AC #3: tap to view book)', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      render(
+        <BookSearchResult
+          book={mockBook}
+          onClick={onClick}
+          isInLibrary={true}
+          currentStatus="CURRENTLY_READING"
+        />
+      );
+
+      await user.click(screen.getByTestId('add-to-library-button'));
+
+      // When book is in library, clicking the button should navigate to the book
+      expect(onClick).toHaveBeenCalledWith(mockBook);
+    });
+  });
+});

@@ -50,7 +50,7 @@ development_status:
   # Epic 2: Book Library & Discovery
   epic-2: in-progress
   2-1-book-search-via-external-apis: done
-  2-2-add-book-to-library: backlog
+  2-2-add-book-to-library: done
   2-3-book-detail-page: backlog
   2-4-update-reading-status: backlog
   2-5-remove-book-from-library: backlog

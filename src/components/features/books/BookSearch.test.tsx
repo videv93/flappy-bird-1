@@ -2,6 +2,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { BookSearch } from './BookSearch';
 
+// Mock sonner toast
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+// Mock the addToLibrary action to prevent prisma/auth imports
+vi.mock('@/actions/books', () => ({
+  addToLibrary: vi.fn().mockResolvedValue({ success: true, data: {} }),
+  getBatchUserBookStatus: vi.fn().mockResolvedValue({ success: true, data: {} }),
+}));
+
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
