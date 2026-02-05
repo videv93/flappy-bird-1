@@ -15,6 +15,7 @@ model User {
   email               String    @unique
   emailVerified       Boolean   @default(false) @map("email_verified")
   name                String?
+  image               String?
   bio                 String?
   avatarUrl           String?   @map("avatar_url")
   applePrivateRelay   Boolean   @default(false) @map("apple_private_relay")
