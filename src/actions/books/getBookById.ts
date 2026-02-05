@@ -3,11 +3,27 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { fetchBookByISBN } from '@/services/books';
 import type { ActionResult } from './types';
 import type { Book, ReadingStatus } from '@prisma/client';
 
+export type BookData = Book | ExternalBookData;
+
+export interface ExternalBookData {
+  id: string;
+  isbn10: string | null;
+  isbn13: string | null;
+  title: string;
+  author: string;
+  coverUrl: string | null;
+  pageCount: number | null;
+  publishedYear: number | null;
+  description: string | null;
+  isExternal: true;
+}
+
 export interface BookDetailData {
-  book: Book;
+  book: BookData;
   stats: {
     totalReaders: number;
     currentlyReading: number;
@@ -33,7 +49,39 @@ export async function getBookById(
     });
 
     if (!book) {
-      return { success: false, error: 'Book not found' };
+      // Book not in database - try to fetch from OpenLibrary
+      const externalBook = await fetchBookByISBN(id);
+
+      if (!externalBook) {
+        return { success: false, error: 'Book not found' };
+      }
+
+      // Return external book with default stats
+      const externalData: ExternalBookData = {
+        id: externalBook.isbn13 || externalBook.isbn10 || externalBook.id,
+        isbn10: externalBook.isbn10 || null,
+        isbn13: externalBook.isbn13 || null,
+        title: externalBook.title,
+        author: externalBook.authors.join(', ') || 'Unknown Author',
+        coverUrl: externalBook.coverUrl || null,
+        pageCount: externalBook.pageCount || null,
+        publishedYear: externalBook.publishedYear || null,
+        description: externalBook.description || null,
+        isExternal: true,
+      };
+
+      return {
+        success: true,
+        data: {
+          book: externalData,
+          stats: {
+            totalReaders: 0,
+            currentlyReading: 0,
+          },
+          userStatus: undefined,
+          authorVerified: false,
+        },
+      };
     }
 
     // Aggregate reader counts

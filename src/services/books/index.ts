@@ -10,7 +10,7 @@ import type { BookSearchResult, BookSearchResponse } from './types';
 // Re-export types and utilities
 export * from './types';
 export { isValidISBN10, isValidISBN13, detectISBN } from './validation';
-export { searchOpenLibrary } from './openLibrary';
+export { searchOpenLibrary, fetchBookByISBN } from './openLibrary';
 export { searchGoogleBooks } from './googleBooks';
 
 /**

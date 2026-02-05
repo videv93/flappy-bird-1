@@ -3,11 +3,11 @@
 import Image from 'next/image';
 import { BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Book } from '@prisma/client';
+import type { BookData } from '@/actions/books';
 import { AuthorVerifiedBadge } from './AuthorVerifiedBadge';
 
 interface BookDetailHeroProps {
-  book: Book;
+  book: BookData;
   authorVerified?: boolean;
   className?: string;
 }

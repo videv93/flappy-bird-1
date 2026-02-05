@@ -74,6 +74,46 @@ function transformDoc(doc: OpenLibraryDoc): BookSearchResult {
 }
 
 /**
+ * Fetches a single book by ISBN from OpenLibrary
+ * Returns undefined if not found
+ */
+export async function fetchBookByISBN(
+  isbn: string
+): Promise<BookSearchResult | undefined> {
+  const cleaned = isbn.replace(/[-\s]/g, '');
+
+  const params = new URLSearchParams();
+  params.set('isbn', cleaned);
+  params.set('limit', '1');
+  params.set(
+    'fields',
+    'key,title,author_name,first_publish_year,cover_i,isbn,number_of_pages_median'
+  );
+
+  const url = `${OPEN_LIBRARY_SEARCH_URL}?${params.toString()}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': USER_AGENT,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `OpenLibrary API error: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data: OpenLibrarySearchResponse = await response.json();
+
+  if (data.docs.length === 0) {
+    return undefined;
+  }
+
+  return transformDoc(data.docs[0]);
+}
+
+/**
  * Searches OpenLibrary for books
  * Supports title, author, and ISBN search
  */
