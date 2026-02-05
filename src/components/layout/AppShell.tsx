@@ -22,19 +22,14 @@ export function AppShell({ children, title, leftSlot, rightSlot }: AppShellProps
   const scrollPositions = useRef<Map<string, number>>(new Map());
   const mainRef = useRef<HTMLElement>(null);
 
-  // Save scroll position before navigation
+  // Save scroll position on route change
   useEffect(() => {
-    const saveScrollPosition = () => {
-      if (mainRef.current) {
-        scrollPositions.current.set(pathname, window.scrollY);
-      }
-    };
-
-    window.addEventListener('beforeunload', saveScrollPosition);
+    // Save current scroll position for current route
+    const currentPathname = pathname;
 
     return () => {
-      saveScrollPosition();
-      window.removeEventListener('beforeunload', saveScrollPosition);
+      // Save scroll position when leaving this route
+      scrollPositions.current.set(currentPathname, window.scrollY);
     };
   }, [pathname]);
 

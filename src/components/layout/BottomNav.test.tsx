@@ -84,11 +84,11 @@ describe('BottomNav', () => {
     });
   });
 
-  it('is hidden on desktop viewports (md breakpoint)', () => {
+  it('is hidden on desktop viewports (lg breakpoint)', () => {
     render(<BottomNav />);
 
     const nav = screen.getByRole('navigation', { name: /main navigation/i });
-    expect(nav).toHaveClass('md:hidden');
+    expect(nav).toHaveClass('lg:hidden');
   });
 
   it('each tab has an icon and label', () => {

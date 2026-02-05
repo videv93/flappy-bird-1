@@ -81,11 +81,23 @@ describe('Navigation Integration Tests', () => {
       });
     });
 
-    it('is hidden on desktop via CSS class', () => {
+    it('is hidden on desktop via CSS class (lg breakpoint)', () => {
       render(<BottomNav />);
 
       const nav = screen.getByRole('navigation', { name: /main navigation/i });
-      expect(nav).toHaveClass('md:hidden');
+      expect(nav).toHaveClass('lg:hidden');
+    });
+
+    it('is visible on tablet viewports (768-1023px) via CSS', () => {
+      // BottomNav uses lg:hidden, so it's visible below 1024px (including tablet)
+      // SideNav uses hidden lg:flex, so it's hidden below 1024px
+      // This ensures tablet breakpoint (768-1023px) has visible navigation
+      render(<BottomNav />);
+
+      const nav = screen.getByRole('navigation', { name: /main navigation/i });
+      // Verify it's NOT hidden at md (768px) - only hidden at lg (1024px)
+      expect(nav).not.toHaveClass('md:hidden');
+      expect(nav).toHaveClass('lg:hidden');
     });
   });
 

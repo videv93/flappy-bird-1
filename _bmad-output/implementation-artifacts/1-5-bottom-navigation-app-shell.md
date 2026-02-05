@@ -1,6 +1,6 @@
 # Story 1.5: Bottom Navigation & App Shell
 
-Status: review
+Status: done
 
 ## Story
 
@@ -511,8 +511,16 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - src/app/(main)/layout.tsx (integrated AppShell with dynamic titles)
 - src/app/(main)/home/page.tsx (adjusted content for AppShell integration)
 - src/hooks/index.ts (added hook exports)
+- _bmad-output/implementation-artifacts/sprint-status.yaml (story status tracking)
 
 ## Change Log
+
+- 2026-02-05: Code Review - Fixed Critical and Medium issues
+  - **CRITICAL FIX:** Changed BottomNav breakpoint from `md:hidden` to `lg:hidden` to ensure tablet (768-1023px) has visible navigation
+  - **MEDIUM FIX:** Fixed scroll position preservation - was using unreliable `beforeunload` event, now saves on route change cleanup
+  - **MEDIUM FIX:** Added sprint-status.yaml to File List documentation
+  - **TEST:** Added tablet breakpoint visibility test to integration.test.tsx
+  - Updated tests: BottomNav.test.tsx, integration.test.tsx (49 layout tests passing)
 
 - 2026-02-04: Implemented Story 1.5 - Bottom Navigation & App Shell
   - Added responsive navigation (bottom on mobile/tablet, side on desktop)

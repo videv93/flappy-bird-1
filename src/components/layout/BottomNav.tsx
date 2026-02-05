@@ -22,7 +22,7 @@ export function BottomNav() {
     <nav
       aria-label="Main navigation"
       role="navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden"
     >
       <div className="flex h-16 items-center justify-around px-4">
         {NAV_ITEMS.map((item) => {
