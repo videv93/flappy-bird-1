@@ -37,8 +37,8 @@ export function ProfileView({ user: initialUser }: ProfileViewProps) {
         ...prev,
         name: data.name,
         bio: data.bio ?? null,
-        favoriteGenres: data.favoriteGenres,
-        showReadingActivity: data.showReadingActivity,
+        favoriteGenres: data.favoriteGenres ?? prev.favoriteGenres,
+        showReadingActivity: data.showReadingActivity ?? prev.showReadingActivity,
       }));
 
       const result = await updateProfile(data);
