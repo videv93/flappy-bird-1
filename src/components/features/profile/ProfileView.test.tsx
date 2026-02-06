@@ -37,6 +37,7 @@ describe('ProfileView', () => {
     applePrivateRelay: false,
     favoriteGenres: ['Fiction', 'Mystery'],
     showReadingActivity: true,
+    dailyGoalMinutes: null,
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2024-01-15'),
   };
@@ -160,5 +161,20 @@ describe('ProfileView', () => {
     render(<ProfileView user={mockUser} />);
 
     expect(screen.queryByText('Reading Statistics')).not.toBeInTheDocument();
+  });
+
+  it('displays daily reading goal when set', () => {
+    const userWithGoal = { ...mockUser, dailyGoalMinutes: 30 };
+    render(<ProfileView user={userWithGoal} />);
+
+    expect(screen.getByTestId('reading-goal-section')).toBeInTheDocument();
+    expect(screen.getByText('30 minutes per day')).toBeInTheDocument();
+  });
+
+  it('displays "No goal set" when dailyGoalMinutes is null', () => {
+    render(<ProfileView user={mockUser} />);
+
+    expect(screen.getByTestId('reading-goal-section')).toBeInTheDocument();
+    expect(screen.getByText('No goal set')).toBeInTheDocument();
   });
 });

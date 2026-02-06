@@ -28,6 +28,7 @@ model User {
   applePrivateRelay   Boolean   @default(false) @map("apple_private_relay")
   favoriteGenres      String[]  @default([]) @map("favorite_genres")
   showReadingActivity Boolean   @default(true) @map("show_reading_activity")
+  dailyGoalMinutes    Int?      @map("daily_goal_minutes")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
@@ -35,6 +36,7 @@ model User {
   accounts        Account[]
   userBooks       UserBook[]
   readingSessions ReadingSession[]
+  streak          UserStreak?
 
   @@map("users")
 }
@@ -122,6 +124,22 @@ model ReadingSession {
   @@index([bookId])
   @@index([userId, bookId])
   @@map("reading_sessions")
+}
+
+model UserStreak {
+  id               String    @id @default(cuid())
+  userId           String    @unique @map("user_id")
+  currentStreak    Int       @default(0) @map("current_streak")
+  longestStreak    Int       @default(0) @map("longest_streak")
+  lastGoalMetDate  DateTime? @map("last_goal_met_date")
+  freezeUsedToday  Boolean   @default(false) @map("freeze_used_today")
+  freezesAvailable Int       @default(0) @map("freezes_available")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_streaks")
 }
 
 model UserBook {

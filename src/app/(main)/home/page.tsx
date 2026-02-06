@@ -1,56 +1,64 @@
-'use client';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { getDailyProgress } from '@/actions/goals';
+import { getStreakData } from '@/actions/streaks';
+import { HomeContent } from './HomeContent';
 
-import Image from 'next/image';
-import { useSession } from '@/hooks/useSession';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { logout } from '@/actions/auth/logout';
+export default async function HomePage() {
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
 
-export default function HomePage() {
-  const { user, isLoading } = useSession();
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+  if (!session?.user) {
+    redirect('/login?callbackUrl=/home');
   }
 
-  const handleSignOut = async () => {
-    toast.success('Signed out successfully');
-    await logout();
-  };
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      name: true,
+      email: true,
+      image: true,
+      dailyGoalMinutes: true,
+    },
+  });
+
+  if (!user) {
+    redirect('/login?callbackUrl=/home');
+  }
+
+  // Fetch daily progress if goal is set
+  let minutesRead = 0;
+  if (user.dailyGoalMinutes) {
+    const progressResult = await getDailyProgress({ timezone: 'UTC' });
+    if (progressResult.success) {
+      minutesRead = progressResult.data.minutesRead;
+    }
+  }
+
+  // Fetch streak data only when goal is set (StreakRing not rendered otherwise)
+  let currentStreak = 0;
+  let freezeUsedToday = false;
+  if (user.dailyGoalMinutes) {
+    const streakResult = await getStreakData();
+    if (streakResult.success) {
+      currentStreak = streakResult.data.currentStreak;
+      freezeUsedToday = streakResult.data.freezeUsedToday;
+    }
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 p-4 pt-8">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
-          Welcome{user?.name ? `, ${user.name}` : ''}!
-        </h2>
-        {user && (
-          <div className="mt-4 flex flex-col items-center gap-2">
-            {user.image && (
-              <Image
-                src={user.image}
-                alt={user.name || 'User avatar'}
-                width={64}
-                height={64}
-                className="h-16 w-16 rounded-full"
-              />
-            )}
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-          </div>
-        )}
-      </div>
-
-      <Button variant="outline" onClick={handleSignOut}>
-        Sign Out
-      </Button>
-
-      <p className="text-center text-sm text-muted-foreground">
-        This is a protected page. You can only see this if you&apos;re signed in.
-      </p>
-    </div>
+    <main className="container mx-auto px-4 py-8 max-w-2xl">
+      <HomeContent
+        userName={user.name}
+        userEmail={user.email}
+        userImage={user.image}
+        dailyGoalMinutes={user.dailyGoalMinutes}
+        minutesRead={minutesRead}
+        currentStreak={currentStreak}
+        freezeUsedToday={freezeUsedToday}
+      />
+    </main>
   );
 }

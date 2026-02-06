@@ -143,6 +143,18 @@ function ProfileReadOnlyView({ user, sessionStats }: { user: User; sessionStats?
         </div>
       )}
 
+      {/* Reading Goal */}
+      <div className="space-y-2" data-testid="reading-goal-section">
+        <h3 className="text-sm font-medium text-muted-foreground">
+          Daily Reading Goal
+        </h3>
+        <p className="text-sm">
+          {user.dailyGoalMinutes
+            ? `${user.dailyGoalMinutes} minutes per day`
+            : 'No goal set'}
+        </p>
+      </div>
+
       {/* Bio */}
       {user.bio && (
         <div className="space-y-2">
