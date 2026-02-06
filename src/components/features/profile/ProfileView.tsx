@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileForm } from './ProfileForm';
 import { updateProfile } from '@/actions/profile';
+import { signOut } from '@/lib/auth-client';
 import type { ProfileInput } from '@/lib/validation/profile';
 import { ReadingStats } from '@/components/features/sessions/ReadingStats';
 import type { SessionStats } from '@/actions/sessions/getUserSessionStats';
@@ -17,10 +20,24 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ user: initialUser, sessionStats }: ProfileViewProps) {
+export function ProfileView({ user: initialUser }: ProfileViewProps) {
+  const router = useRouter();
   const [user, setUser] = useState(initialUser);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const previousUserRef = useRef(initialUser);
+
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true);
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push('/login');
+        },
+      },
+    });
+  }, [router]);
 
   const handleEditClick = useCallback(() => {
     setIsEditing(true);
@@ -93,6 +110,17 @@ export function ProfileView({ user: initialUser, sessionStats }: ProfileViewProp
           <ProfileReadOnlyView user={user} sessionStats={sessionStats} />
         )}
       </CardContent>
+
+      <CardFooter className="pt-6">
+        <Button
+          variant="outline"
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+          className="w-full"
+        >
+          {isSigningOut ? 'Signing out...' : 'Sign out'}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
