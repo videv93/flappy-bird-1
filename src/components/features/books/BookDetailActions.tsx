@@ -229,7 +229,7 @@ export function BookDetailActions({
       {/* Session timer and quick actions */}
       {displayStatus === 'CURRENTLY_READING' && (
         <SessionTimer
-          bookId={book.isbn13 || book.isbn10 || book.id}
+          bookId={book.id}
           bookTitle={book.title}
           bookStatus={displayStatus}
         />
