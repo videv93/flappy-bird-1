@@ -19,6 +19,13 @@ export { AuthorVerifiedBadge } from './AuthorVerifiedBadge';
 export { BookReadersCount } from './BookReadersCount';
 export { BookDetailActions } from './BookDetailActions';
 
+// Library view components
+export { LibraryView } from './LibraryView';
+export { LibrarySection } from './LibrarySection';
+export { LibraryBookCard } from './LibraryBookCard';
+export { LibraryBookCardSkeleton } from './LibraryBookCardSkeleton';
+export { LibraryEmptyState } from './LibraryEmptyState';
+
 // Types and constants
 export type {
   BookSearchResult as BookSearchResultType,

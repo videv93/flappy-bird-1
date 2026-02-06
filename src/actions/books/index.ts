@@ -4,6 +4,8 @@ export { removeFromLibrary } from './removeFromLibrary';
 export { restoreToLibrary } from './restoreToLibrary';
 export { getUserBookStatus, getBatchUserBookStatus } from './getUserBookStatus';
 export { getBookById } from './getBookById';
+export { getUserLibrary } from './getUserLibrary';
+export type { LibraryData } from './getUserLibrary';
 export type { BookDetailData, BookData, ExternalBookData } from './getBookById';
 export type { UpdateReadingStatusInput } from './updateReadingStatus';
 export type { RemoveFromLibraryInput } from './removeFromLibrary';
