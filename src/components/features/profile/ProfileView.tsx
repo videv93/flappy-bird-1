@@ -20,7 +20,6 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ user: initialUser, sessionStats }: ProfileViewProps) {
-export function ProfileView({ user: initialUser }: ProfileViewProps) {
   const router = useRouter();
   const [user, setUser] = useState(initialUser);
   const [isEditing, setIsEditing] = useState(false);
