@@ -20,12 +20,18 @@ vi.mock('sonner', () => ({
   },
 }));
 
+// Mock getUserSessionStats (transitive import via ReadingStats)
+vi.mock('@/actions/sessions/getUserSessionStats', () => ({
+  getUserSessionStats: vi.fn(),
+}));
+
 describe('ProfileView', () => {
   const mockUser: User = {
     id: 'user-1',
     email: 'john@example.com',
     emailVerified: true,
     name: 'John Doe',
+    image: null,
     bio: 'I love reading books',
     avatarUrl: null,
     applePrivateRelay: false,
@@ -128,5 +134,31 @@ describe('ProfileView', () => {
     expect(
       screen.getByText('Your reading activity is visible to followers')
     ).toBeInTheDocument();
+  });
+
+  it('renders reading stats when sessionStats are provided', () => {
+    render(
+      <ProfileView
+        user={mockUser}
+        sessionStats={{ totalSeconds: 7200, sessionCount: 10, avgSeconds: 720 }}
+      />
+    );
+
+    expect(screen.getByText('Reading Statistics')).toBeInTheDocument();
+    expect(screen.getByTestId('reading-stats')).toBeInTheDocument();
+    expect(screen.getByTestId('reading-stats-total-time')).toHaveTextContent('2h 0m');
+    expect(screen.getByTestId('reading-stats-session-count')).toHaveTextContent('10');
+  });
+
+  it('does not render reading stats when sessionStats is null', () => {
+    render(<ProfileView user={mockUser} sessionStats={null} />);
+
+    expect(screen.queryByText('Reading Statistics')).not.toBeInTheDocument();
+  });
+
+  it('does not render reading stats when sessionStats is undefined', () => {
+    render(<ProfileView user={mockUser} />);
+
+    expect(screen.queryByText('Reading Statistics')).not.toBeInTheDocument();
   });
 });

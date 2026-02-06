@@ -12,6 +12,12 @@ vi.mock('@/actions/books', () => ({
   getBookById: vi.fn(),
 }));
 
+vi.mock('@/actions/sessions', () => ({
+  getBookSessions: vi.fn(() => Promise.resolve({ success: true, data: { sessions: [], nextCursor: null } })),
+  getUserSessionStats: vi.fn(),
+  saveReadingSession: vi.fn(),
+}));
+
 vi.mock('@/components/features/books', () => ({
   BookDetail: ({ data }: { data: { book: { title: string } } }) => (
     <div data-testid="book-detail">{data.book.title}</div>

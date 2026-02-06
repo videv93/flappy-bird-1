@@ -26,6 +26,8 @@ vi.mock('@/hooks/useOfflineSync', () => ({
 // Mock sessions action (transitively imported via ActiveSessionIndicator barrel)
 vi.mock('@/actions/sessions', () => ({
   saveReadingSession: vi.fn(),
+  getBookSessions: vi.fn(),
+  getUserSessionStats: vi.fn(),
 }));
 
 // Mock framer-motion

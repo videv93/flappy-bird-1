@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getBookById } from '@/actions/books';
+import { getBookSessions } from '@/actions/sessions';
 import { BookDetail } from '@/components/features/books';
 import { PageHeader, BackButton } from '@/components/layout';
 
@@ -42,13 +43,22 @@ export default async function BookPage({ params }: BookPageProps) {
     notFound();
   }
 
+  // Fetch sessions for the book (returns empty if not authenticated)
+  const sessionsResult = await getBookSessions({ bookId: result.data.book.id });
+  const initialSessions = sessionsResult.success ? sessionsResult.data.sessions : [];
+  const initialCursor = sessionsResult.success ? sessionsResult.data.nextCursor : null;
+
   return (
     <>
       <PageHeader
         title="Book Details"
         leftSlot={<BackButton fallbackHref="/search" />}
       />
-      <BookDetail data={result.data} />
+      <BookDetail
+        data={result.data}
+        initialSessions={initialSessions}
+        initialCursor={initialCursor}
+      />
     </>
   );
 }

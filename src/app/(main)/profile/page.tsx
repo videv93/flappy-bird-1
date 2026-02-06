@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getUserSessionStats } from '@/actions/sessions';
 import { ProfileView } from '@/components/features/profile';
 
 export default async function ProfilePage() {
@@ -22,9 +23,12 @@ export default async function ProfilePage() {
     redirect('/login?callbackUrl=/profile');
   }
 
+  const statsResult = await getUserSessionStats();
+  const sessionStats = statsResult.success ? statsResult.data : null;
+
   return (
     <main className="container mx-auto px-4 py-8 max-w-2xl">
-      <ProfileView user={user} />
+      <ProfileView user={user} sessionStats={sessionStats} />
     </main>
   );
 }

@@ -49,6 +49,22 @@ vi.mock('./BookReadersCount', () => ({
   ),
 }));
 
+// Mock SessionList (used by BookDetail for session history)
+vi.mock('@/components/features/sessions/SessionList', () => ({
+  SessionList: ({ bookId, initialSessions }: { bookId: string; initialSessions: unknown[] }) => (
+    <div data-testid="mock-session-list">
+      {initialSessions.length} sessions for {bookId}
+    </div>
+  ),
+}));
+
+// Mock sessions action (transitive import via SessionList barrel)
+vi.mock('@/actions/sessions', () => ({
+  getBookSessions: vi.fn(),
+  getUserSessionStats: vi.fn(),
+  saveReadingSession: vi.fn(),
+}));
+
 vi.mock('./BookDetailActions', () => ({
   BookDetailActions: ({
     isInLibrary,
@@ -317,6 +333,54 @@ describe('BookDetail', () => {
     await user.click(screen.getByTestId('remove-button'));
 
     expect(screen.getByTestId('mock-actions')).toHaveTextContent('Not In Library');
+  });
+
+  it('renders session list when user is in library and has sessions', () => {
+    const dataWithUserStatus: BookDetailData = {
+      ...mockData,
+      userStatus: {
+        isInLibrary: true,
+        status: 'CURRENTLY_READING',
+        progress: 50,
+        userBookId: 'userbook-123',
+      },
+    };
+    const sessions = [
+      { id: 'rs-1', userId: 'u1', bookId: 'book-123', duration: 300, startedAt: new Date(), endedAt: new Date(), syncedAt: null, createdAt: new Date(), updatedAt: new Date() },
+    ];
+
+    render(
+      <BookDetail data={dataWithUserStatus} initialSessions={sessions} initialCursor={null} />
+    );
+
+    expect(screen.getByTestId('book-sessions-section')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-session-list')).toHaveTextContent('1 sessions');
+  });
+
+  it('does not render session list when user has no sessions', () => {
+    const dataWithUserStatus: BookDetailData = {
+      ...mockData,
+      userStatus: {
+        isInLibrary: true,
+        status: 'CURRENTLY_READING',
+        progress: 50,
+        userBookId: 'userbook-123',
+      },
+    };
+
+    render(
+      <BookDetail data={dataWithUserStatus} initialSessions={[]} initialCursor={null} />
+    );
+
+    expect(screen.queryByTestId('book-sessions-section')).not.toBeInTheDocument();
+  });
+
+  it('does not render session list when user is not in library', () => {
+    render(
+      <BookDetail data={mockData} initialSessions={[{ id: 'rs-1', userId: 'u1', bookId: 'book-123', duration: 300, startedAt: new Date(), endedAt: new Date(), syncedAt: null, createdAt: new Date(), updatedAt: new Date() }]} initialCursor={null} />
+    );
+
+    expect(screen.queryByTestId('book-sessions-section')).not.toBeInTheDocument();
   });
 
   it('restores library state on restore callback', async () => {

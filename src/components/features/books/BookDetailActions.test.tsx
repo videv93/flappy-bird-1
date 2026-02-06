@@ -33,6 +33,8 @@ vi.mock('@/actions/books', () => ({
 // Mock sessions action (used by SessionSummary via SessionTimer)
 vi.mock('@/actions/sessions', () => ({
   saveReadingSession: vi.fn(),
+  getBookSessions: vi.fn(),
+  getUserSessionStats: vi.fn(),
 }));
 
 vi.mock('sonner', () => {

@@ -1,6 +1,10 @@
 export { SessionTimer } from './SessionTimer';
 export { SessionSummary } from './SessionSummary';
+export { SessionList } from './SessionList';
+export { ReadingStats } from './ReadingStats';
 export { ActiveSessionIndicator } from './ActiveSessionIndicator';
 export { formatTime } from './types';
 export type { SessionTimerProps } from './types';
 export type { SessionSummaryProps } from './SessionSummary';
+export type { SessionListProps } from './SessionList';
+export type { ReadingStatsProps } from './ReadingStats';

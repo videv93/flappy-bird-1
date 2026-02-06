@@ -26,6 +26,8 @@ vi.mock('framer-motion', () => ({
 // Mock sessions action (used by SessionSummary via SessionTimer)
 vi.mock('@/actions/sessions', () => ({
   saveReadingSession: vi.fn(),
+  getBookSessions: vi.fn(),
+  getUserSessionStats: vi.fn(),
 }));
 
 // Mock sonner (used by SessionSummary)

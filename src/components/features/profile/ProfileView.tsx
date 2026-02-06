@@ -7,13 +7,16 @@ import { ProfileHeader } from './ProfileHeader';
 import { ProfileForm } from './ProfileForm';
 import { updateProfile } from '@/actions/profile';
 import type { ProfileInput } from '@/lib/validation/profile';
+import { ReadingStats } from '@/components/features/sessions/ReadingStats';
+import type { SessionStats } from '@/actions/sessions/getUserSessionStats';
 import type { User } from '@prisma/client';
 
 interface ProfileViewProps {
   user: User;
+  sessionStats?: SessionStats | null;
 }
 
-export function ProfileView({ user: initialUser }: ProfileViewProps) {
+export function ProfileView({ user: initialUser, sessionStats }: ProfileViewProps) {
   const [user, setUser] = useState(initialUser);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,18 +90,32 @@ export function ProfileView({ user: initialUser }: ProfileViewProps) {
             isSubmitting={isSubmitting}
           />
         ) : (
-          <ProfileReadOnlyView user={user} />
+          <ProfileReadOnlyView user={user} sessionStats={sessionStats} />
         )}
       </CardContent>
     </Card>
   );
 }
 
-function ProfileReadOnlyView({ user }: { user: User }) {
+function ProfileReadOnlyView({ user, sessionStats }: { user: User; sessionStats?: SessionStats | null }) {
   const hasGenres = user.favoriteGenres && user.favoriteGenres.length > 0;
 
   return (
     <div className="space-y-6">
+      {/* Reading Stats */}
+      {sessionStats && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-muted-foreground">
+            Reading Statistics
+          </h3>
+          <ReadingStats
+            totalSeconds={sessionStats.totalSeconds}
+            sessionCount={sessionStats.sessionCount}
+            avgSeconds={sessionStats.avgSeconds}
+          />
+        </div>
+      )}
+
       {/* Bio */}
       {user.bio && (
         <div className="space-y-2">

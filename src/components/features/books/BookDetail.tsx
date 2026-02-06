@@ -5,15 +5,18 @@ import { BookDetailHero } from './BookDetailHero';
 import { BookDescription } from './BookDescription';
 import { BookReadersCount } from './BookReadersCount';
 import { BookDetailActions } from './BookDetailActions';
+import { SessionList } from '@/components/features/sessions/SessionList';
 import type { BookDetailData } from '@/actions/books';
 import type { BookSearchResult } from '@/services/books/types';
-import type { ReadingStatus } from '@prisma/client';
+import type { ReadingStatus, ReadingSession } from '@prisma/client';
 
 interface BookDetailProps {
   data: BookDetailData;
+  initialSessions?: ReadingSession[];
+  initialCursor?: string | null;
 }
 
-export function BookDetail({ data }: BookDetailProps) {
+export function BookDetail({ data, initialSessions = [], initialCursor = null }: BookDetailProps) {
   const { book, stats, userStatus, authorVerified } = data;
 
   // Local state to track library status for optimistic updates
@@ -79,6 +82,17 @@ export function BookDetail({ data }: BookDetailProps) {
         isbn={book.isbn13 || book.isbn10}
         className="py-4"
       />
+
+      {isInLibrary && initialSessions.length > 0 && (
+        <div className="border-t border-border py-4" data-testid="book-sessions-section">
+          <h3 className="mb-3 text-sm font-medium text-muted-foreground">Your Sessions</h3>
+          <SessionList
+            bookId={book.id}
+            initialSessions={initialSessions}
+            initialCursor={initialCursor ?? null}
+          />
+        </div>
+      )}
 
       <BookDetailActions
         book={bookSearchResult}

@@ -61,7 +61,7 @@ development_status:
   epic-3: in-progress
   3-1-session-timer-with-persistence: done
   3-2-save-reading-session: review
-  3-3-session-history: backlog
+  3-3-session-history: review
   3-4-daily-reading-goal: backlog
   3-5-streak-ring-display: backlog
   3-6-streak-credit-reset-logic: backlog
