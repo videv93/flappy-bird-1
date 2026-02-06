@@ -31,9 +31,10 @@ model User {
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
-  sessions  Session[]
-  accounts  Account[]
-  userBooks UserBook[]
+  sessions        Session[]
+  accounts        Account[]
+  userBooks       UserBook[]
+  readingSessions ReadingSession[]
 
   @@map("users")
 }
@@ -95,11 +96,32 @@ model Book {
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
 
-  userBooks UserBook[]
+  userBooks       UserBook[]
+  readingSessions ReadingSession[]
 
   @@index([isbn10])
   @@index([isbn13])
   @@map("books")
+}
+
+model ReadingSession {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  bookId    String    @map("book_id")
+  duration  Int       // Duration in seconds
+  startedAt DateTime  @map("started_at")
+  endedAt   DateTime  @map("ended_at")
+  syncedAt  DateTime? @map("synced_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([userId, bookId])
+  @@map("reading_sessions")
 }
 
 model UserBook {

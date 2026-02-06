@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
 import { pageVariants, pageTransition } from '@/lib/motion';
@@ -18,6 +19,7 @@ export function AppShell({ children, title, leftSlot, rightSlot }: AppShellProps
   const pathname = usePathname();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const reducedMotion = useReducedMotion();
+  useOfflineSync();
 
   // Scroll position preservation
   const scrollPositions = useRef<Map<string, number>>(new Map());

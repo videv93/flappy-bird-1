@@ -23,6 +23,16 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+// Mock sessions action (used by SessionSummary via SessionTimer)
+vi.mock('@/actions/sessions', () => ({
+  saveReadingSession: vi.fn(),
+}));
+
+// Mock sonner (used by SessionSummary)
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+}));
+
 describe('Session Timer Integration', () => {
   beforeEach(() => {
     useTimerStore.setState({

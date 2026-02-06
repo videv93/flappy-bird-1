@@ -18,6 +18,16 @@ vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: () => false,
 }));
 
+// Mock useOfflineSync hook (avoids transitive auth/prisma imports)
+vi.mock('@/hooks/useOfflineSync', () => ({
+  useOfflineSync: () => {},
+}));
+
+// Mock sessions action (transitively imported via ActiveSessionIndicator barrel)
+vi.mock('@/actions/sessions', () => ({
+  saveReadingSession: vi.fn(),
+}));
+
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {

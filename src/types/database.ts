@@ -11,6 +11,7 @@ export type {
   Verification,
   Book,
   UserBook,
+  ReadingSession,
   ReadingStatus,
 } from '@prisma/client';
 

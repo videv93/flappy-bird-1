@@ -16,12 +16,14 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTimerStore } from '@/stores/useTimerStore';
 import { useTimerInterval } from '@/hooks/useTimerInterval';
+import { SessionSummary } from './SessionSummary';
 import { formatTime, type SessionTimerProps } from './types';
 
 export function SessionTimer({ bookId, bookTitle, bookStatus }: SessionTimerProps) {
   const isRunning = useTimerStore((s) => s.isRunning);
   const currentBookId = useTimerStore((s) => s.currentBookId);
   const currentBookTitle = useTimerStore((s) => s.currentBookTitle);
+  const startTime = useTimerStore((s) => s.startTime);
   const hasHydrated = useTimerStore((s) => s._hasHydrated);
   const start = useTimerStore((s) => s.start);
   const stop = useTimerStore((s) => s.stop);
@@ -29,6 +31,9 @@ export function SessionTimer({ bookId, bookTitle, bookStatus }: SessionTimerProp
   const elapsed = useTimerInterval();
 
   const [showConflict, setShowConflict] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [stoppedDuration, setStoppedDuration] = useState(0);
+  const [stoppedStartTime, setStoppedStartTime] = useState(0);
 
   // Only show for CURRENTLY_READING books
   if (bookStatus !== 'CURRENTLY_READING') {
@@ -56,7 +61,18 @@ export function SessionTimer({ bookId, bookTitle, bookStatus }: SessionTimerProp
   };
 
   const handleStop = () => {
+    const duration = elapsed;
+    const currentStartTime = startTime ?? Date.now();
     stop();
+    setStoppedDuration(duration);
+    setStoppedStartTime(currentStartTime);
+    setShowSummary(true);
+  };
+
+  const handleSummaryComplete = () => {
+    setShowSummary(false);
+    setStoppedDuration(0);
+    setStoppedStartTime(0);
   };
 
   const handleConflictEnd = () => {
@@ -68,6 +84,19 @@ export function SessionTimer({ bookId, bookTitle, bookStatus }: SessionTimerProp
   const handleConflictCancel = () => {
     setShowConflict(false);
   };
+
+  // Show session summary after stopping
+  if (showSummary && !isRunning && currentBookId === bookId) {
+    return (
+      <SessionSummary
+        bookId={bookId}
+        bookTitle={bookTitle}
+        duration={stoppedDuration}
+        startTime={stoppedStartTime}
+        onComplete={handleSummaryComplete}
+      />
+    );
+  }
 
   return (
     <div data-testid="session-timer">

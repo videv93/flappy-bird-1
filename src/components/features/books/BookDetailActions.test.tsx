@@ -30,6 +30,11 @@ vi.mock('@/actions/books', () => ({
   restoreToLibrary: vi.fn(),
 }));
 
+// Mock sessions action (used by SessionSummary via SessionTimer)
+vi.mock('@/actions/sessions', () => ({
+  saveReadingSession: vi.fn(),
+}));
+
 vi.mock('sonner', () => {
   const fn = vi.fn() as ReturnType<typeof vi.fn> & {
     success: ReturnType<typeof vi.fn>;
