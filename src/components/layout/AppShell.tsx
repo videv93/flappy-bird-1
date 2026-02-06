@@ -8,6 +8,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
 import { pageVariants, pageTransition } from '@/lib/motion';
+import { ActiveSessionIndicator } from '@/components/features/sessions';
 import { BottomNav } from './BottomNav';
 import { PageHeader } from './PageHeader';
 import { SideNav } from './SideNav';
@@ -51,6 +52,9 @@ export function AppShell({ children, title, leftSlot, rightSlot }: AppShellProps
       {title && (
         <PageHeader title={title} leftSlot={leftSlot} rightSlot={rightSlot} />
       )}
+
+      {/* Active Session Indicator */}
+      <ActiveSessionIndicator />
 
       {/* Side Navigation (Desktop) */}
       {isDesktop && <SideNav />}

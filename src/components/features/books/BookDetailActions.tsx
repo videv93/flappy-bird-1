@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { updateReadingStatus, removeFromLibrary, restoreToLibrary } from '@/actions/books';
+import { SessionTimer } from '@/components/features/sessions';
 import { AddToLibraryButton } from './AddToLibraryButton';
 import { ReadingStatusSelector } from './ReadingStatusSelector';
 import { getReadingStatusLabel } from './types';
@@ -225,16 +226,15 @@ export function BookDetailActions({
         </div>
       )}
 
-      {/* Quick actions */}
+      {/* Session timer and quick actions */}
+      {displayStatus === 'CURRENTLY_READING' && (
+        <SessionTimer
+          bookId={book.isbn13 || book.isbn10 || book.id}
+          bookTitle={book.title}
+          bookStatus={displayStatus}
+        />
+      )}
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          className="flex-1"
-          disabled
-          data-testid="log-session-button"
-        >
-          Log Session
-        </Button>
         <Button
           variant="outline"
           className="flex-1"
@@ -244,9 +244,6 @@ export function BookDetailActions({
           Update Progress
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground text-center">
-        Session logging and progress updates coming in future updates
-      </p>
 
       {/* Remove from library */}
       <AlertDialog>

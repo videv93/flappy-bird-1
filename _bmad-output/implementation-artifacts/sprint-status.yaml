@@ -48,7 +48,7 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Book Library & Discovery
-  epic-2: in-progress
+  epic-2: done
   2-1-book-search-via-external-apis: done
   2-2-add-book-to-library: done
   2-3-book-detail-page: done
@@ -58,8 +58,8 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Reading Sessions & Habit Tracking
-  epic-3: backlog
-  3-1-session-timer-with-persistence: backlog
+  epic-3: in-progress
+  3-1-session-timer-with-persistence: done
   3-2-save-reading-session: backlog
   3-3-session-history: backlog
   3-4-daily-reading-goal: backlog

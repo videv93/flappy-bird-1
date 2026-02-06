@@ -4,6 +4,24 @@ import userEvent from '@testing-library/user-event';
 import { BookDetailActions } from './BookDetailActions';
 import type { BookSearchResult } from '@/services/books/types';
 
+// Mock idb-storage to prevent IndexedDB access in SessionTimer
+vi.mock('@/lib/idb-storage', () => ({
+  idbStorage: {
+    getItem: vi.fn(() => Promise.resolve(null)),
+    setItem: vi.fn(() => Promise.resolve()),
+    removeItem: vi.fn(() => Promise.resolve()),
+  },
+}));
+
+// Mock framer-motion
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: 'div',
+    main: 'main',
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Mock the server actions
 vi.mock('@/actions/books', () => ({
   addToLibrary: vi.fn(),
@@ -24,6 +42,7 @@ vi.mock('sonner', () => {
 
 import { updateReadingStatus, removeFromLibrary, restoreToLibrary } from '@/actions/books';
 import { toast } from 'sonner';
+import { useTimerStore } from '@/stores/useTimerStore';
 
 const mockUpdateReadingStatus = updateReadingStatus as unknown as ReturnType<typeof vi.fn>;
 const mockRemoveFromLibrary = removeFromLibrary as unknown as ReturnType<typeof vi.fn>;
@@ -48,6 +67,13 @@ const mockBook: BookSearchResult = {
 describe('BookDetailActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useTimerStore.setState({
+      isRunning: false,
+      startTime: null,
+      currentBookId: null,
+      currentBookTitle: null,
+      _hasHydrated: true,
+    });
   });
 
   describe('when book is not in library', () => {
@@ -139,7 +165,7 @@ describe('BookDetailActions', () => {
       expect(screen.queryByTestId('progress-section')).not.toBeInTheDocument();
     });
 
-    it('renders disabled quick action buttons', () => {
+    it('renders session timer for CURRENTLY_READING books', () => {
       render(
         <BookDetailActions
           book={mockBook}
@@ -149,25 +175,21 @@ describe('BookDetailActions', () => {
         />
       );
 
-      expect(screen.getByTestId('log-session-button')).toBeDisabled();
+      expect(screen.getByTestId('start-reading-button')).toBeInTheDocument();
       expect(screen.getByTestId('update-progress-button')).toBeDisabled();
     });
 
-    it('renders future feature message', () => {
+    it('does not render session timer for non-CURRENTLY_READING books', () => {
       render(
         <BookDetailActions
           book={mockBook}
           isInLibrary={true}
-          currentStatus="CURRENTLY_READING"
+          currentStatus="FINISHED"
           userBookId="ub-123"
         />
       );
 
-      expect(
-        screen.getByText(
-          'Session logging and progress updates coming in future updates'
-        )
-      ).toBeInTheDocument();
+      expect(screen.queryByTestId('start-reading-button')).not.toBeInTheDocument();
     });
 
     it('renders enabled change status button', () => {
