@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { logout } from '@/actions/auth/logout';
 import { DailyGoalSetter, DailyGoalProgress } from '@/components/features/goals';
-import { StreakRing } from '@/components/features/streaks';
+import { StreakRing, FreezeCountBadge, StreakFreezePrompt } from '@/components/features/streaks';
 
 interface HomeContentProps {
   userName: string | null;
@@ -17,6 +17,7 @@ interface HomeContentProps {
   currentStreak: number;
   freezeUsedToday: boolean;
   isStreakAtRisk?: boolean;
+  freezesAvailable?: number;
 }
 
 export function HomeContent({
@@ -28,6 +29,7 @@ export function HomeContent({
   currentStreak,
   freezeUsedToday,
   isStreakAtRisk = false,
+  freezesAvailable = 0,
 }: HomeContentProps) {
   const router = useRouter();
 
@@ -73,8 +75,20 @@ export function HomeContent({
               freezeUsedToday={freezeUsedToday}
               size="lg"
             />
+            {(currentStreak > 0 || freezesAvailable > 0) && (
+              <FreezeCountBadge count={freezesAvailable} />
+            )}
             <DailyGoalProgress minutesRead={minutesRead} goalMinutes={dailyGoalMinutes} />
-            {isStreakAtRisk && currentStreak > 0 && (
+            {isStreakAtRisk && currentStreak > 0 && freezesAvailable > 0 && (
+              <StreakFreezePrompt
+                freezesAvailable={freezesAvailable}
+                isAtRisk={isStreakAtRisk}
+                currentStreak={currentStreak}
+                onFreezeUsed={() => router.refresh()}
+                onDecline={() => router.refresh()}
+              />
+            )}
+            {isStreakAtRisk && currentStreak > 0 && freezesAvailable <= 0 && (
               <p
                 className="text-sm text-muted-foreground text-center"
                 data-testid="streak-at-risk-message"

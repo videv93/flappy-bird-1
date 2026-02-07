@@ -60,6 +60,27 @@ vi.mock('@/components/features/streaks', () => ({
       Streak: {currentStreak}, {minutesRead}/{goalMinutes}
     </div>
   ),
+  FreezeCountBadge: ({ count }: { count: number; max?: number }) => (
+    <div data-testid="freeze-count-badge">{count} freezes</div>
+  ),
+  StreakFreezePrompt: ({
+    freezesAvailable,
+    currentStreak,
+    onFreezeUsed,
+    onDecline,
+  }: {
+    freezesAvailable: number;
+    isAtRisk: boolean;
+    currentStreak: number;
+    onFreezeUsed: () => void;
+    onDecline: () => void;
+  }) => (
+    <div data-testid="streak-freeze-prompt">
+      Freeze prompt: {freezesAvailable} freezes, {currentStreak} streak
+      <button onClick={onFreezeUsed}>Use Freeze</button>
+      <button onClick={onDecline}>Decline</button>
+    </div>
+  ),
 }));
 
 // Mock sonner
@@ -174,7 +195,7 @@ describe('HomeContent', () => {
   });
 
   // Streak status messaging tests (Story 3.6)
-  it('shows streak at risk message when streak is at risk', () => {
+  it('shows streak at risk message when at risk with no freezes available', () => {
     render(
       <HomeContent
         {...defaultProps}
@@ -182,6 +203,7 @@ describe('HomeContent', () => {
         minutesRead={0}
         currentStreak={5}
         isStreakAtRisk={true}
+        freezesAvailable={0}
       />
     );
 
@@ -215,5 +237,88 @@ describe('HomeContent', () => {
     );
 
     expect(screen.queryByTestId('streak-at-risk-message')).not.toBeInTheDocument();
+  });
+
+  // Freeze UI tests (Story 3.7)
+  it('renders FreezeCountBadge with correct count when goal is set', () => {
+    render(
+      <HomeContent
+        {...defaultProps}
+        dailyGoalMinutes={30}
+        minutesRead={10}
+        currentStreak={5}
+        freezesAvailable={3}
+      />
+    );
+
+    expect(screen.getByTestId('freeze-count-badge')).toBeInTheDocument();
+    expect(screen.getByText('3 freezes')).toBeInTheDocument();
+  });
+
+  it('renders StreakFreezePrompt when at risk with freezes available', () => {
+    render(
+      <HomeContent
+        {...defaultProps}
+        dailyGoalMinutes={30}
+        minutesRead={0}
+        currentStreak={5}
+        isStreakAtRisk={true}
+        freezesAvailable={3}
+      />
+    );
+
+    expect(screen.getByTestId('streak-freeze-prompt')).toBeInTheDocument();
+    expect(screen.queryByTestId('streak-at-risk-message')).not.toBeInTheDocument();
+  });
+
+  it('does NOT render StreakFreezePrompt when not at risk', () => {
+    render(
+      <HomeContent
+        {...defaultProps}
+        dailyGoalMinutes={30}
+        minutesRead={10}
+        currentStreak={5}
+        isStreakAtRisk={false}
+        freezesAvailable={3}
+      />
+    );
+
+    expect(screen.queryByTestId('streak-freeze-prompt')).not.toBeInTheDocument();
+  });
+
+  it('does NOT render StreakFreezePrompt when no freezes available', () => {
+    render(
+      <HomeContent
+        {...defaultProps}
+        dailyGoalMinutes={30}
+        minutesRead={0}
+        currentStreak={5}
+        isStreakAtRisk={true}
+        freezesAvailable={0}
+      />
+    );
+
+    expect(screen.queryByTestId('streak-freeze-prompt')).not.toBeInTheDocument();
+    expect(screen.getByTestId('streak-at-risk-message')).toBeInTheDocument();
+  });
+
+  it('does NOT render FreezeCountBadge when no goal is set', () => {
+    render(<HomeContent {...defaultProps} />);
+
+    expect(screen.queryByTestId('freeze-count-badge')).not.toBeInTheDocument();
+  });
+
+  it('does NOT render FreezeCountBadge when streak is 0 and no freezes available', () => {
+    render(
+      <HomeContent
+        {...defaultProps}
+        dailyGoalMinutes={30}
+        minutesRead={0}
+        currentStreak={0}
+        freezesAvailable={0}
+      />
+    );
+
+    expect(screen.queryByTestId('freeze-count-badge')).not.toBeInTheDocument();
   });
 });

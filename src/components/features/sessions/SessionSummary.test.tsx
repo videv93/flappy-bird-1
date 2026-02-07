@@ -186,6 +186,47 @@ describe('SessionSummary', () => {
     expect(onComplete).toHaveBeenCalled();
   });
 
+  it('shows freeze earned toast when session save returns freezesEarned > 0', async () => {
+    mockSaveReadingSession.mockResolvedValue({
+      success: true,
+      data: {
+        id: 'rs-1',
+        streakUpdate: {
+          freezesEarned: 1,
+          freezesAvailable: 2,
+          message: 'You earned 1 streak freeze!',
+        },
+      },
+    });
+    const user = userEvent.setup();
+    render(<SessionSummary {...defaultProps} />);
+
+    await user.click(screen.getByTestId('save-session-button'));
+
+    expect(mockToast.success).toHaveBeenCalledWith('Reading session saved!');
+    expect(mockToast.success).toHaveBeenCalledWith('You earned 1 streak freeze!');
+  });
+
+  it('does not show freeze toast when freezesEarned is 0', async () => {
+    mockSaveReadingSession.mockResolvedValue({
+      success: true,
+      data: {
+        id: 'rs-1',
+        streakUpdate: {
+          freezesEarned: 0,
+          freezesAvailable: 1,
+        },
+      },
+    });
+    const user = userEvent.setup();
+    render(<SessionSummary {...defaultProps} />);
+
+    await user.click(screen.getByTestId('save-session-button'));
+
+    expect(mockToast.success).toHaveBeenCalledTimes(1);
+    expect(mockToast.success).toHaveBeenCalledWith('Reading session saved!');
+  });
+
   it('has accessible aria attributes', () => {
     render(<SessionSummary {...defaultProps} />);
 

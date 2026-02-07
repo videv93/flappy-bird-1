@@ -3,6 +3,7 @@
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getYesterdayBounds } from '@/lib/dates';
 import type { ActionResult } from '@/actions/books/types';
 
 export type StreakData = {
@@ -43,13 +44,24 @@ export async function getStreakData(): Promise<ActionResult<StreakData>> {
       };
     }
 
+    // Compute freezeUsedToday dynamically from yesterday's DailyProgress
+    // instead of stale UserStreak.freezeUsedToday flag (which never resets)
+    const { start: yesterdayStart, end: yesterdayEnd } = getYesterdayBounds('UTC');
+    const yesterdayFreeze = await prisma.dailyProgress.findFirst({
+      where: {
+        userId: session.user.id,
+        date: { gte: yesterdayStart, lt: yesterdayEnd },
+        freezeUsed: true,
+      },
+    });
+
     return {
       success: true,
       data: {
         currentStreak: streak.currentStreak,
         longestStreak: streak.longestStreak,
         lastGoalMetDate: streak.lastGoalMetDate?.toISOString() ?? null,
-        freezeUsedToday: streak.freezeUsedToday,
+        freezeUsedToday: !!yesterdayFreeze,
         freezesAvailable: streak.freezesAvailable,
       },
     };

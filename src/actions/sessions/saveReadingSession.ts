@@ -17,7 +17,7 @@ const saveSessionSchema = z.object({
   timezone: z.string().optional().default('UTC'),
 });
 
-export type SaveReadingSessionInput = z.infer<typeof saveSessionSchema>;
+export type SaveReadingSessionInput = z.input<typeof saveSessionSchema>;
 
 export type SaveReadingSessionResult = ReadingSession & {
   streakUpdate?: StreakUpdateResult | null;

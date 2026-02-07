@@ -13,10 +13,20 @@ vi.mock('@/lib/auth', () => ({
 
 // Mock prisma
 const mockFindUnique = vi.fn();
+const mockDailyProgressFindFirst = vi.fn();
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     userStreak: { findUnique: (...args: unknown[]) => mockFindUnique(...args) },
+    dailyProgress: { findFirst: (...args: unknown[]) => mockDailyProgressFindFirst(...args) },
   },
+}));
+
+// Mock dates
+vi.mock('@/lib/dates', () => ({
+  getYesterdayBounds: vi.fn().mockReturnValue({
+    start: new Date('2026-02-05T00:00:00.000Z'),
+    end: new Date('2026-02-06T00:00:00.000Z'),
+  }),
 }));
 
 import { getStreakData } from './getStreakData';
@@ -36,6 +46,7 @@ describe('getStreakData', () => {
       freezeUsedToday: false,
       freezesAvailable: 2,
     });
+    mockDailyProgressFindFirst.mockResolvedValue(null);
 
     const result = await getStreakData();
 
@@ -116,6 +127,7 @@ describe('getStreakData', () => {
       freezeUsedToday: false,
       freezesAvailable: 0,
     });
+    mockDailyProgressFindFirst.mockResolvedValue(null);
 
     const result = await getStreakData();
 
@@ -131,14 +143,20 @@ describe('getStreakData', () => {
     });
   });
 
-  it('returns freezeUsedToday true when freeze is active', async () => {
+  it('returns freezeUsedToday true when yesterday has a freeze in DailyProgress', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'user-1' } });
     mockFindUnique.mockResolvedValue({
       currentStreak: 10,
       longestStreak: 10,
       lastGoalMetDate: new Date('2026-02-04T00:00:00.000Z'),
-      freezeUsedToday: true,
+      freezeUsedToday: true, // stale DB flag — ignored by getStreakData
       freezesAvailable: 1,
+    });
+    // Dynamic check: yesterday's DailyProgress has a freeze
+    mockDailyProgressFindFirst.mockResolvedValue({
+      userId: 'user-1',
+      date: new Date('2026-02-05T00:00:00.000Z'),
+      freezeUsed: true,
     });
 
     const result = await getStreakData();
@@ -147,6 +165,26 @@ describe('getStreakData', () => {
     if (result.success) {
       expect(result.data.freezeUsedToday).toBe(true);
       expect(result.data.freezesAvailable).toBe(1);
+    }
+  });
+
+  it('returns freezeUsedToday false even when DB flag is stale true', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'user-1' } });
+    mockFindUnique.mockResolvedValue({
+      currentStreak: 10,
+      longestStreak: 10,
+      lastGoalMetDate: new Date('2026-02-04T00:00:00.000Z'),
+      freezeUsedToday: true, // stale from previous day
+      freezesAvailable: 1,
+    });
+    // No freeze yesterday in DailyProgress
+    mockDailyProgressFindFirst.mockResolvedValue(null);
+
+    const result = await getStreakData();
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.freezeUsedToday).toBe(false);
     }
   });
 });

@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getTodayBounds, getYesterdayBounds, getDateInTimezone } from '@/lib/dates';
+import { MAX_STREAK_FREEZES, FREEZE_MILESTONES } from '@/lib/config/constants';
 import type { ActionResult } from '@/actions/books/types';
 
 const updateStreakSchema = z.object({
@@ -20,6 +21,8 @@ export type StreakUpdateResult = {
   wasReset: boolean;
   reason: 'goal_met_streak_incremented' | 'goal_met_streak_reset' | 'goal_not_met' | 'already_credited_today' | 'no_goal_set';
   message?: string;
+  freezesEarned: number;
+  freezesAvailable: number;
 };
 
 /**
@@ -43,6 +46,8 @@ export async function updateStreakInternal(
       longestStreak: 0,
       wasReset: false,
       reason: 'no_goal_set',
+      freezesEarned: 0,
+      freezesAvailable: 0,
     };
   }
 
@@ -69,6 +74,8 @@ export async function updateStreakInternal(
       longestStreak: 0,
       wasReset: false,
       reason: 'goal_not_met',
+      freezesEarned: 0,
+      freezesAvailable: 0,
     };
   }
 
@@ -89,6 +96,8 @@ export async function updateStreakInternal(
         longestStreak: existingStreak.longestStreak,
         wasReset: false,
         reason: 'already_credited_today',
+        freezesEarned: 0,
+        freezesAvailable: existingStreak.freezesAvailable,
       };
     }
   }
@@ -139,6 +148,11 @@ export async function updateStreakInternal(
 
   const newLongest = Math.max(newStreak, previousLongest);
 
+  // Calculate freeze earnings from milestone
+  const currentFreezes = existingStreak?.freezesAvailable ?? 0;
+  const freezesToAward = FREEZE_MILESTONES[newStreak] ?? 0;
+  const newFreezesAvailable = Math.min(currentFreezes + freezesToAward, MAX_STREAK_FREEZES);
+
   // Store today's date as midnight UTC in user's timezone
   const todayMidnightUTC = new Date(`${todayStr}T00:00:00.000Z`);
 
@@ -151,11 +165,13 @@ export async function updateStreakInternal(
         currentStreak: newStreak,
         longestStreak: newLongest,
         lastGoalMetDate: todayMidnightUTC,
+        freezesAvailable: newFreezesAvailable,
       },
       update: {
         currentStreak: newStreak,
         longestStreak: newLongest,
         lastGoalMetDate: todayMidnightUTC,
+        freezesAvailable: newFreezesAvailable,
       },
     }),
     prisma.dailyProgress.upsert({
@@ -173,13 +189,25 @@ export async function updateStreakInternal(
     }),
   ]);
 
+  // Build message
+  let message: string | undefined;
+  if (wasReset) {
+    message = 'Fresh start! Day 1 of your new streak.';
+  } else if (freezesToAward > 0 && newFreezesAvailable < currentFreezes + freezesToAward) {
+    message = `Freeze bank full (${MAX_STREAK_FREEZES}/${MAX_STREAK_FREEZES})`;
+  } else if (freezesToAward > 0) {
+    message = `You earned ${freezesToAward} streak freeze${freezesToAward > 1 ? 's' : ''}!`;
+  }
+
   return {
     streakUpdated: true,
     currentStreak: newStreak,
     longestStreak: newLongest,
     wasReset,
     reason: wasReset ? 'goal_met_streak_reset' : 'goal_met_streak_incremented',
-    message: wasReset ? 'Fresh start! Day 1 of your new streak.' : undefined,
+    message,
+    freezesEarned: freezesToAward,
+    freezesAvailable: newFreezesAvailable,
   };
 }
 

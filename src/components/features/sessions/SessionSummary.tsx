@@ -98,6 +98,12 @@ export function SessionSummary({
 
     if (result.success) {
       toast.success('Reading session saved!');
+      const earned = result.data.streakUpdate?.freezesEarned ?? 0;
+      if (earned > 0) {
+        const freezeMsg = result.data.streakUpdate?.message
+          ?? `You earned ${earned} streak freeze${earned > 1 ? 's' : ''}!`;
+        toast.success(freezeMsg);
+      }
       reset();
       onComplete();
     } else {

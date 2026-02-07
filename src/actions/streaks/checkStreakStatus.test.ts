@@ -43,7 +43,7 @@ describe('checkStreakStatus', () => {
     mockAuth.mockResolvedValue({
       user: { id: 'user-1', email: 'test@test.com', emailVerified: false, name: 'Test', createdAt: new Date(), updatedAt: new Date() },
       session: { id: 'sess-1', userId: 'user-1', token: 'tok', expiresAt: new Date(), createdAt: new Date(), updatedAt: new Date() },
-    } as any);
+    } as unknown);
   });
 
   it('returns defaults when no streak record exists', async () => {
@@ -67,7 +67,7 @@ describe('checkStreakStatus', () => {
       longestStreak: 10,
       lastGoalMetDate: new Date('2026-02-05T00:00:00.000Z'),
       freezeUsedToday: false,
-    } as any);
+    } as unknown);
     // today = 2026-02-06, lastMet = 2026-02-05 (yesterday)
     mockGetDateInTimezone
       .mockReturnValueOnce('2026-02-06') // today
@@ -89,7 +89,7 @@ describe('checkStreakStatus', () => {
       longestStreak: 10,
       lastGoalMetDate: new Date('2026-02-06T00:00:00.000Z'),
       freezeUsedToday: false,
-    } as any);
+    } as unknown);
     mockGetDateInTimezone
       .mockReturnValueOnce('2026-02-06') // today
       .mockReturnValueOnce('2026-02-06'); // lastGoalMetDate = today
@@ -110,7 +110,7 @@ describe('checkStreakStatus', () => {
       longestStreak: 10,
       lastGoalMetDate: new Date('2026-02-04T00:00:00.000Z'), // 2 days ago
       freezeUsedToday: false,
-    } as any);
+    } as unknown);
     mockGetDateInTimezone
       .mockReturnValueOnce('2026-02-06') // today
       .mockReturnValueOnce('2026-02-04') // lastGoalMetDate
@@ -133,7 +133,7 @@ describe('checkStreakStatus', () => {
       longestStreak: 10,
       lastGoalMetDate: new Date('2026-02-04T00:00:00.000Z'),
       freezeUsedToday: false,
-    } as any);
+    } as unknown);
     mockGetDateInTimezone
       .mockReturnValueOnce('2026-02-06') // today
       .mockReturnValueOnce('2026-02-04') // lastGoalMetDate
@@ -142,7 +142,7 @@ describe('checkStreakStatus', () => {
       userId: 'user-1',
       date: new Date('2026-02-05T00:00:00.000Z'),
       freezeUsed: true,
-    } as any);
+    } as unknown);
 
     const result = await checkStreakStatus({ timezone: 'UTC' });
 
@@ -159,7 +159,7 @@ describe('checkStreakStatus', () => {
       longestStreak: 10,
       lastGoalMetDate: new Date('2026-02-02T00:00:00.000Z'), // 4 days ago
       freezeUsedToday: false,
-    } as any);
+    } as unknown);
     mockGetDateInTimezone
       .mockReturnValueOnce('2026-02-06') // today
       .mockReturnValueOnce('2026-02-02') // lastGoalMetDate
@@ -176,7 +176,7 @@ describe('checkStreakStatus', () => {
   });
 
   it('returns error when not authenticated', async () => {
-    mockAuth.mockResolvedValue(null as any);
+    mockAuth.mockResolvedValue(null as unknown);
 
     const result = await checkStreakStatus({ timezone: 'UTC' });
 

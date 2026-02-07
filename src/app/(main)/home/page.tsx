@@ -41,11 +41,13 @@ export default async function HomePage() {
   let currentStreak = 0;
   let freezeUsedToday = false;
   let isStreakAtRisk = false;
+  let freezesAvailable = 0;
   if (user.dailyGoalMinutes) {
     const streakResult = await getStreakData();
     if (streakResult.success) {
       currentStreak = streakResult.data.currentStreak;
       freezeUsedToday = streakResult.data.freezeUsedToday;
+      freezesAvailable = streakResult.data.freezesAvailable;
     }
 
     // Check streak health for compassionate messaging
@@ -66,6 +68,7 @@ export default async function HomePage() {
         currentStreak={currentStreak}
         freezeUsedToday={freezeUsedToday}
         isStreakAtRisk={isStreakAtRisk}
+        freezesAvailable={freezesAvailable}
       />
     </main>
   );

@@ -32,6 +32,8 @@ vi.mock('@/actions/streaks/updateStreakOnGoalMet', () => ({
     longestStreak: 0,
     wasReset: false,
     reason: 'goal_not_met',
+    freezesEarned: 0,
+    freezesAvailable: 0,
   }),
 }));
 
@@ -204,6 +206,8 @@ describe('saveReadingSession', () => {
       longestStreak: 5,
       wasReset: false,
       reason: 'goal_met_streak_incremented',
+      freezesEarned: 0,
+      freezesAvailable: 0,
     });
 
     const result = await saveReadingSession(validInput);
@@ -282,6 +286,8 @@ describe('saveReadingSession', () => {
       wasReset: true,
       reason: 'goal_met_streak_reset',
       message: 'Fresh start! Day 1 of your new streak.',
+      freezesEarned: 0,
+      freezesAvailable: 0,
     });
 
     const result = await saveReadingSession(validInput);

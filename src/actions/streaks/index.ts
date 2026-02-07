@@ -4,3 +4,5 @@ export { updateStreakOnGoalMet, updateStreakInternal } from './updateStreakOnGoa
 export type { StreakUpdateResult, UpdateStreakInput } from './updateStreakOnGoalMet';
 export { checkStreakStatus } from './checkStreakStatus';
 export type { StreakStatusResult, CheckStreakInput } from './checkStreakStatus';
+export { useStreakFreeze } from './useStreakFreeze';
+export type { FreezeResult, UseStreakFreezeInput } from './useStreakFreeze';
