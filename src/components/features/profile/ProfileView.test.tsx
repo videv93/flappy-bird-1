@@ -35,6 +35,34 @@ vi.mock('@/actions/sessions/getUserSessionStats', () => ({
   getUserSessionStats: vi.fn(),
 }));
 
+// Mock auth and prisma (transitive deps via StreakHistoryView → server actions)
+vi.mock('@/lib/auth', () => ({
+  auth: { api: { getSession: vi.fn() } },
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: {},
+}));
+
+vi.mock('next/headers', () => ({
+  headers: vi.fn().mockResolvedValue(new Headers()),
+}));
+
+// Mock streak history actions (transitive import via StreakHistoryView)
+vi.mock('@/actions/streaks/getStreakHistory', () => ({
+  getStreakHistory: vi.fn().mockResolvedValue({
+    success: true,
+    data: { history: [], currentStreak: 0, longestStreak: 0, dailyGoalMinutes: null },
+  }),
+}));
+
+vi.mock('@/actions/streaks/getDayDetail', () => ({
+  getDayDetail: vi.fn().mockResolvedValue({
+    success: true,
+    data: { date: '2026-01-01', minutesRead: 0, goalMinutes: null, goalMet: false, freezeUsed: false, sessionCount: 0 },
+  }),
+}));
+
 describe('ProfileView', () => {
   const mockUser: User = {
     id: 'user-1',

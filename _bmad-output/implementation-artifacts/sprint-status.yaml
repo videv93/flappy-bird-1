@@ -66,7 +66,7 @@ development_status:
   3-5-streak-ring-display: review
   3-6-streak-credit-reset-logic: in-progress
   3-7-streak-freeze: done
-  3-8-streak-history: backlog
+  3-8-streak-history: done
   epic-3-retrospective: optional
 
   # Epic 4: Social Connections & Activity Feed

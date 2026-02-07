@@ -11,15 +11,18 @@ import { updateProfile } from '@/actions/profile';
 import { signOut } from '@/lib/auth-client';
 import type { ProfileInput } from '@/lib/validation/profile';
 import { ReadingStats } from '@/components/features/sessions/ReadingStats';
+import { StreakHistoryView } from '@/components/features/streaks';
 import type { SessionStats } from '@/actions/sessions/getUserSessionStats';
+import type { StreakData } from '@/actions/streaks';
 import type { User } from '@prisma/client';
 
 interface ProfileViewProps {
   user: User;
   sessionStats?: SessionStats | null;
+  streakData?: StreakData | null;
 }
 
-export function ProfileView({ user: initialUser, sessionStats }: ProfileViewProps) {
+export function ProfileView({ user: initialUser, sessionStats, streakData }: ProfileViewProps) {
   const router = useRouter();
   const [user, setUser] = useState(initialUser);
   const [isEditing, setIsEditing] = useState(false);
@@ -106,7 +109,7 @@ export function ProfileView({ user: initialUser, sessionStats }: ProfileViewProp
             isSubmitting={isSubmitting}
           />
         ) : (
-          <ProfileReadOnlyView user={user} sessionStats={sessionStats} />
+          <ProfileReadOnlyView user={user} sessionStats={sessionStats} streakData={streakData} />
         )}
       </CardContent>
 
@@ -124,7 +127,7 @@ export function ProfileView({ user: initialUser, sessionStats }: ProfileViewProp
   );
 }
 
-function ProfileReadOnlyView({ user, sessionStats }: { user: User; sessionStats?: SessionStats | null }) {
+function ProfileReadOnlyView({ user, sessionStats, streakData }: { user: User; sessionStats?: SessionStats | null; streakData?: StreakData | null }) {
   const hasGenres = user.favoriteGenres && user.favoriteGenres.length > 0;
 
   return (
@@ -139,6 +142,19 @@ function ProfileReadOnlyView({ user, sessionStats }: { user: User; sessionStats?
             totalSeconds={sessionStats.totalSeconds}
             sessionCount={sessionStats.sessionCount}
             avgSeconds={sessionStats.avgSeconds}
+          />
+        </div>
+      )}
+
+      {/* Streak History */}
+      {streakData && (
+        <div className="space-y-2" data-testid="streak-history-section" id="streak-history">
+          <h3 className="text-sm font-medium text-muted-foreground">
+            Your Reading Journey
+          </h3>
+          <StreakHistoryView
+            initialCurrentStreak={streakData.currentStreak}
+            initialLongestStreak={streakData.longestStreak}
           />
         </div>
       )}

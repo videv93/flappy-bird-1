@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -68,13 +69,20 @@ export function HomeContent({
           <DailyGoalSetter onGoalSet={handleGoalSet} />
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <StreakRing
-              currentStreak={currentStreak}
-              minutesRead={minutesRead}
-              goalMinutes={dailyGoalMinutes}
-              freezeUsedToday={freezeUsedToday}
-              size="lg"
-            />
+            <Link
+              href="/profile#streak-history"
+              className="cursor-pointer rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="View streak history"
+              data-testid="streak-ring-link"
+            >
+              <StreakRing
+                currentStreak={currentStreak}
+                minutesRead={minutesRead}
+                goalMinutes={dailyGoalMinutes}
+                freezeUsedToday={freezeUsedToday}
+                size="lg"
+              />
+            </Link>
             {(currentStreak > 0 || freezesAvailable > 0) && (
               <FreezeCountBadge count={freezesAvailable} />
             )}

@@ -6,3 +6,7 @@ export { checkStreakStatus } from './checkStreakStatus';
 export type { StreakStatusResult, CheckStreakInput } from './checkStreakStatus';
 export { useStreakFreeze } from './useStreakFreeze';
 export type { FreezeResult, UseStreakFreezeInput } from './useStreakFreeze';
+export { getStreakHistory } from './getStreakHistory';
+export type { StreakHistoryData, StreakHistoryDay, GetStreakHistoryInput } from './getStreakHistory';
+export { getDayDetail } from './getDayDetail';
+export type { DayDetailData, GetDayDetailInput } from './getDayDetail';

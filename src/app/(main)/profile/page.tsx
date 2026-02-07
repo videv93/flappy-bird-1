@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getUserSessionStats } from '@/actions/sessions';
+import { getStreakData } from '@/actions/streaks';
 import { ProfileView } from '@/components/features/profile';
 
 export default async function ProfilePage() {
@@ -26,9 +27,12 @@ export default async function ProfilePage() {
   const statsResult = await getUserSessionStats();
   const sessionStats = statsResult.success ? statsResult.data : null;
 
+  const streakResult = await getStreakData();
+  const streakData = streakResult.success ? streakResult.data : null;
+
   return (
     <main className="container mx-auto px-4 py-8 max-w-2xl">
-      <ProfileView user={user} sessionStats={sessionStats} />
+      <ProfileView user={user} sessionStats={sessionStats} streakData={streakData} />
     </main>
   );
 }
