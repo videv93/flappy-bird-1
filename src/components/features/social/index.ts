@@ -6,3 +6,5 @@ export { FinishedBooksList } from './FinishedBooksList';
 export { ActivityFeed } from './ActivityFeed';
 export { ActivityFeedItem } from './ActivityFeedItem';
 export { KudosButton } from './KudosButton';
+export { KudosList } from './KudosList';
+export { KudosListItem } from './KudosListItem';

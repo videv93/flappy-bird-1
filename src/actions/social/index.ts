@@ -44,3 +44,10 @@ export { getUnreadKudosCount } from './getUnreadKudosCount';
 export type { UnreadKudosCountData } from './getUnreadKudosCount';
 
 export { markActivityViewed } from './markActivityViewed';
+
+export { getKudosReceived } from './getKudosReceived';
+export type {
+  GetKudosReceivedInput,
+  KudosWithDetails,
+  GetKudosReceivedData,
+} from './getKudosReceived';
