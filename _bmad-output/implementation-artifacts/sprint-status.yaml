@@ -80,8 +80,8 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: Reading Rooms & Author Presence
-  epic-5: backlog
-  5-1-pusher-presence-channel-spike: backlog
+  epic-5: in-progress
+  5-1-pusher-presence-channel-spike: done
   5-2-join-reading-room: backlog
   5-3-see-room-occupants: backlog
   5-4-leave-reading-room: backlog

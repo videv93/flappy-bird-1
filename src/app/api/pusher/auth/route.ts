@@ -14,15 +14,27 @@ export async function POST(request: NextRequest) {
   const socketId = body.get('socket_id') as string;
   const channel = body.get('channel_name') as string;
 
-  // Verify user can only subscribe to their own private channel
-  const expectedChannel = `private-user-${session.user.id}`;
-  if (channel !== expectedChannel) {
+  const isPrivateUserChannel = channel === `private-user-${session.user.id}`;
+  const isPresenceRoomChannel = channel.startsWith('presence-room-');
+
+  if (!isPrivateUserChannel && !isPresenceRoomChannel) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const pusher = getPusher();
   if (!pusher) {
     return NextResponse.json({ error: 'Pusher not configured' }, { status: 503 });
+  }
+
+  if (isPresenceRoomChannel) {
+    const authResponse = pusher.authorizeChannel(socketId, channel, {
+      user_id: session.user.id,
+      user_info: {
+        name: session.user.name || 'Anonymous',
+        avatarUrl: session.user.image || null,
+      },
+    });
+    return NextResponse.json(authResponse);
   }
 
   const authResponse = pusher.authorizeChannel(socketId, channel, {

@@ -43,6 +43,7 @@ model User {
   following       Follow[]        @relation("UserFollowing")
   kudosGiven      Kudos[]         @relation("KudosGiven")
   kudosReceived   Kudos[]         @relation("KudosReceived")
+  roomPresences   RoomPresence[]
 
   @@map("users")
 }
@@ -106,6 +107,7 @@ model Book {
 
   userBooks       UserBook[]
   readingSessions ReadingSession[]
+  roomPresences   RoomPresence[]
 
   @@index([isbn10])
   @@index([isbn13])
@@ -219,4 +221,26 @@ model Kudos {
   @@index([receiverId])
   @@index([sessionId])
   @@map("kudos")
+}
+
+model RoomPresence {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  bookId       String    @map("book_id")
+  joinedAt     DateTime  @default(now()) @map("joined_at")
+  lastActiveAt DateTime  @default(now()) @map("last_active_at")
+  leftAt       DateTime? @map("left_at")
+  isAuthor     Boolean   @default(false) @map("is_author")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  // NOTE: This unique constraint does NOT prevent duplicate active presences (leftAt=NULL)
+  // because PostgreSQL treats NULL != NULL. Application-level transaction in joinRoom handles this.
+  // A proper fix requires a partial unique index via raw SQL: CREATE UNIQUE INDEX ... WHERE left_at IS NULL
+  @@unique([userId, bookId, leftAt])
+  @@index([userId])
+  @@index([bookId])
+  @@index([bookId, leftAt])
+  @@map("room_presences")
 }
