@@ -9,7 +9,9 @@ export function ActivityPageEffect() {
 
   useEffect(() => {
     resetUnread();
-    markActivityViewed();
+    markActivityViewed().catch((error) => {
+      console.error('Failed to mark activity as viewed:', error);
+    });
   }, [resetUnread]);
 
   return null;

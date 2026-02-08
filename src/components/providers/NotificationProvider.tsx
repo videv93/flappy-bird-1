@@ -19,12 +19,18 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated || !userId) return;
 
+    let isMounted = true;
+
     // Fetch initial unread count
     getUnreadKudosCount().then((result) => {
-      if (result.success) {
+      if (isMounted && result.success) {
         useNotificationStore.getState().setUnreadCount(result.data.count);
       }
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, [isAuthenticated, userId]);
 
   useEffect(() => {

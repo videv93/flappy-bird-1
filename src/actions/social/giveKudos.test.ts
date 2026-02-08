@@ -37,7 +37,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getPusher } from '@/lib/pusher-server';
 
-const mockGetSession = auth.api.getSession as ReturnType<typeof vi.fn>;
+const mockGetSession = auth.api.getSession as unknown as ReturnType<typeof vi.fn>;
 const mockSessionFindUnique = prisma.readingSession.findUnique as ReturnType<typeof vi.fn>;
 const mockKudosCreate = (prisma as unknown as { kudos: { create: ReturnType<typeof vi.fn> } }).kudos.create;
 const mockKudosFindUnique = (prisma as unknown as { kudos: { findUnique: ReturnType<typeof vi.fn> } }).kudos.findUnique;

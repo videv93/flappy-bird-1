@@ -1,5 +1,13 @@
 import { create } from 'zustand';
 
+/**
+ * Notification store for kudos notifications.
+ *
+ * NOTE: This store is intentionally not persisted to localStorage.
+ * The unreadCount resets to 0 on page refresh and is re-fetched from the server
+ * via getUnreadKudosCount(). This ensures accuracy and avoids stale counts.
+ */
+
 export interface KudosEvent {
   fromUserName: string;
   fromUserAvatar: string | null;

@@ -1,6 +1,6 @@
 # Story 4.5: Kudos Notifications
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -601,6 +601,7 @@ Claude Opus 4.6
 ### Change Log
 
 - 2026-02-08: Implemented kudos notifications with Pusher real-time (Story 4.5) — all 13 tasks complete, 1012 tests passing
+- 2026-02-08: Code review fixes applied — Fixed memory leak in NotificationProvider (added mounted flag), added error handling to ActivityPageEffect, fixed hard-coded cluster values in .env.example, added console.warn to pusher-client for consistent DX, fixed TypeScript mock type error in giveKudos.test.ts, documented non-persistence design decision in useNotificationStore
 
 ### File List
 
@@ -626,7 +627,7 @@ Claude Opus 4.6
 **Modified files:**
 - prisma/schema.prisma (added lastActivityViewedAt to User model)
 - src/actions/social/giveKudos.ts (added Pusher trigger after kudos creation)
-- src/actions/social/giveKudos.test.ts (added 3 Pusher trigger tests)
+- src/actions/social/giveKudos.test.ts (added 3 Pusher trigger tests; code review: fixed TypeScript mock type error)
 - src/actions/social/index.ts (added new exports)
 - src/components/layout/types.ts (added badgeCount to NavItem)
 - src/components/layout/BottomNav.tsx (added NavBadge rendering)
@@ -637,7 +638,11 @@ Claude Opus 4.6
 - src/app/layout.tsx (added NotificationProvider)
 - src/app/(main)/activity/page.tsx (added ActivityPageEffect)
 - src/stores/index.ts (added useNotificationStore export)
+- src/stores/useNotificationStore.ts (code review: added documentation comment about non-persistence design decision)
 - src/components/features/profile/ProfileView.test.tsx (added lastActivityViewedAt to mock)
-- .env.example (added Pusher env vars)
+- src/components/features/social/ActivityPageEffect.tsx (code review: added error handling for markActivityViewed)
+- src/components/providers/NotificationProvider.tsx (code review: added mounted flag to prevent memory leak)
+- src/lib/pusher-client.ts (code review: added console.warn for missing env vars)
+- .env.example (added Pusher env vars; code review: changed hard-coded cluster values to placeholders)
 - package.json (added pusher dependency)
 - package-lock.json (updated)
