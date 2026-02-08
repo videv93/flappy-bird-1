@@ -9,7 +9,7 @@ interface DailyGoalProgressProps {
 
 export function DailyGoalProgress({ minutesRead, goalMinutes }: DailyGoalProgressProps) {
   const goalMet = minutesRead >= goalMinutes;
-  const progressPercent = Math.min(Math.round((minutesRead / goalMinutes) * 100), 100);
+  const progressPercent = goalMinutes > 0 ? Math.min(Math.round((minutesRead / goalMinutes) * 100), 100) : 0;
 
   const ariaLabel = goalMet
     ? `Daily reading goal met! ${minutesRead} minutes of ${goalMinutes} minute goal completed today`

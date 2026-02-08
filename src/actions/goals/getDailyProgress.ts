@@ -57,7 +57,7 @@ export async function getDailyProgress(
     });
 
     const totalSeconds = result._sum.duration ?? 0;
-    const minutesRead = Math.floor(totalSeconds / 60);
+    const minutesRead = Math.round(totalSeconds / 60);
     const goalMet = goalMinutes !== null && minutesRead >= goalMinutes;
 
     return {

@@ -1,6 +1,6 @@
 # Story 3.4: Daily Reading Goal
 
-Status: review
+Status: done
 
 ## Story
 

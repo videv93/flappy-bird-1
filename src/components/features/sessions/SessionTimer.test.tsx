@@ -4,6 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { SessionTimer } from './SessionTimer';
 import { useTimerStore } from '@/stores/useTimerStore';
 
+// Mock next/navigation (used by SessionSummary)
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    refresh: vi.fn(),
+  }),
+}));
+
 // Mock idb-storage to prevent IndexedDB access
 vi.mock('@/lib/idb-storage', () => ({
   idbStorage: {

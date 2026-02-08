@@ -33,7 +33,7 @@ export async function getBookSessions(
       return { success: false, error: 'You must be logged in to view sessions' };
     }
 
-    const sessions = await prisma.readingSession.findMany({
+    let sessions = await prisma.readingSession.findMany({
       where: {
         userId: session.user.id,
         bookId: validated.bookId,
@@ -50,8 +50,8 @@ export async function getBookSessions(
 
     let nextCursor: string | null = null;
     if (sessions.length > validated.limit) {
-      const extra = sessions.pop()!;
-      nextCursor = extra.id;
+      nextCursor = sessions[validated.limit].id;
+      sessions = sessions.slice(0, validated.limit);
     }
 
     return { success: true, data: { sessions, nextCursor } };

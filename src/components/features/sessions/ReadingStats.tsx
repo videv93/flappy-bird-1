@@ -1,3 +1,5 @@
+'use client';
+
 import { BookOpen, Clock, BarChart3 } from 'lucide-react';
 import { formatTime } from './types';
 
@@ -7,6 +9,8 @@ export interface ReadingStatsProps {
   avgSeconds: number;
 }
 
+// Total time uses human-friendly "Xh Ym" format for larger durations,
+// while avg session (formatTime) uses precise "MM:SS" format for shorter durations.
 function formatTotalTime(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);

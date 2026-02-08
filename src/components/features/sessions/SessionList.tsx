@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Clock, CalendarDays, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getBookSessions } from '@/actions/sessions';
@@ -42,6 +43,8 @@ export function SessionList({ bookId, initialSessions, initialCursor }: SessionL
     if (result.success) {
       setSessions((prev) => [...prev, ...result.data.sessions]);
       setNextCursor(result.data.nextCursor);
+    } else {
+      toast.error('Failed to load more sessions');
     }
 
     setIsLoading(false);

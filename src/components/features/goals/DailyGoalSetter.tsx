@@ -52,6 +52,9 @@ export function DailyGoalSetter({ onGoalSet, currentGoal }: DailyGoalSetterProps
     if (result.success) {
       toast.success(`Your daily goal is ${selected} minutes`);
       onGoalSet?.(selected);
+      setSelected(null);
+      setShowCustom(false);
+      setCustomValue('');
     } else {
       toast.error(result.error || 'Failed to set goal');
     }

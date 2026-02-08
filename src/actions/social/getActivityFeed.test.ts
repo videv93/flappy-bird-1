@@ -21,9 +21,11 @@ vi.mock('@/lib/prisma', () => ({
     },
     readingSession: {
       findMany: vi.fn(),
+      count: vi.fn(),
     },
     userBook: {
       findMany: vi.fn(),
+      count: vi.fn(),
     },
     kudos: {
       findMany: vi.fn(),
@@ -39,6 +41,8 @@ const mockFollowFindMany = prisma.follow.findMany as ReturnType<typeof vi.fn>;
 const mockSessionFindMany = prisma.readingSession.findMany as ReturnType<typeof vi.fn>;
 const mockUserBookFindMany = prisma.userBook.findMany as ReturnType<typeof vi.fn>;
 const mockKudosFindMany = (prisma as unknown as { kudos: { findMany: ReturnType<typeof vi.fn> } }).kudos.findMany;
+const mockSessionCount = (prisma.readingSession as unknown as { count: ReturnType<typeof vi.fn> }).count;
+const mockUserBookCount = (prisma.userBook as unknown as { count: ReturnType<typeof vi.fn> }).count;
 
 describe('getActivityFeed', () => {
   beforeEach(() => {
@@ -47,6 +51,8 @@ describe('getActivityFeed', () => {
       user: { id: 'user-1', name: 'Test User' },
     });
     mockKudosFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(0);
+    mockUserBookCount.mockResolvedValue(0);
   });
 
   it('returns error when unauthenticated', async () => {
@@ -102,6 +108,8 @@ describe('getActivityFeed', () => {
     ]);
 
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(1);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed();
 
@@ -113,13 +121,14 @@ describe('getActivityFeed', () => {
       expect(result.data.hasFollows).toBe(true);
     }
 
-    // Verify query filters
+    // Verify query filters (now includes date filter)
     expect(mockSessionFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {
+        where: expect.objectContaining({
           userId: { in: ['user-2', 'user-3'] },
           user: { showReadingActivity: true },
-        },
+          startedAt: expect.objectContaining({ gte: expect.any(Date) }),
+        }),
       })
     );
   });
@@ -128,6 +137,8 @@ describe('getActivityFeed', () => {
     mockFollowFindMany.mockResolvedValue([{ followingId: 'user-2' }]);
     mockSessionFindMany.mockResolvedValue([]);
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(0);
+    mockUserBookCount.mockResolvedValue(0);
 
     await getActivityFeed();
 
@@ -195,6 +206,9 @@ describe('getActivityFeed', () => {
       },
     ]);
 
+    mockSessionCount.mockResolvedValue(1);
+    mockUserBookCount.mockResolvedValue(1);
+
     const result = await getActivityFeed();
 
     expect(result.success).toBe(true);
@@ -213,8 +227,8 @@ describe('getActivityFeed', () => {
     const now = new Date();
     mockFollowFindMany.mockResolvedValue([{ followingId: 'user-2' }]);
 
-    // Create 25 sessions
-    const sessions = Array.from({ length: 25 }, (_, i) => ({
+    // Create 10 sessions (queryCap = limit + offset = 10)
+    const sessions = Array.from({ length: 10 }, (_, i) => ({
       id: `session-${i}`,
       userId: 'user-2',
       bookId: `book-${i}`,
@@ -231,6 +245,9 @@ describe('getActivityFeed', () => {
 
     mockSessionFindMany.mockResolvedValue(sessions);
     mockUserBookFindMany.mockResolvedValue([]);
+    // Total from count queries
+    mockSessionCount.mockResolvedValue(25);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed({ limit: 10, offset: 0 });
 
@@ -245,7 +262,8 @@ describe('getActivityFeed', () => {
     const now = new Date();
     mockFollowFindMany.mockResolvedValue([{ followingId: 'user-2' }]);
 
-    const sessions = Array.from({ length: 25 }, (_, i) => ({
+    // queryCap = limit + offset = 10 + 10 = 20
+    const sessions = Array.from({ length: 20 }, (_, i) => ({
       id: `session-${i}`,
       userId: 'user-2',
       bookId: `book-${i}`,
@@ -262,6 +280,9 @@ describe('getActivityFeed', () => {
 
     mockSessionFindMany.mockResolvedValue(sessions);
     mockUserBookFindMany.mockResolvedValue([]);
+    // Total from count queries
+    mockSessionCount.mockResolvedValue(25);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed({ limit: 10, offset: 10 });
 
@@ -330,6 +351,10 @@ describe('getActivityFeed', () => {
       },
     ]);
 
+    // Total comes from count queries: 2 sessions + 1 finished book
+    mockSessionCount.mockResolvedValue(2);
+    mockUserBookCount.mockResolvedValue(1);
+
     const result = await getActivityFeed();
 
     expect(result.success).toBe(true);
@@ -345,6 +370,8 @@ describe('getActivityFeed', () => {
     ]);
     mockSessionFindMany.mockResolvedValue([]);
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(0);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed();
 
@@ -382,6 +409,8 @@ describe('getActivityFeed', () => {
     ]);
 
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(1);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed();
 
@@ -411,6 +440,8 @@ describe('getActivityFeed', () => {
     mockFollowFindMany.mockResolvedValue([{ followingId: 'user-2' }]);
     mockSessionFindMany.mockResolvedValue([]);
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(0);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed();
 
@@ -440,6 +471,8 @@ describe('getActivityFeed', () => {
     ]);
 
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(1);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed();
 
@@ -471,6 +504,8 @@ describe('getActivityFeed', () => {
     ]);
 
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(1);
+    mockUserBookCount.mockResolvedValue(0);
 
     const result = await getActivityFeed();
 
@@ -509,6 +544,9 @@ describe('getActivityFeed', () => {
       },
     ]);
 
+    mockSessionCount.mockResolvedValue(0);
+    mockUserBookCount.mockResolvedValue(1);
+
     const result = await getActivityFeed();
 
     expect(result.success).toBe(true);
@@ -545,6 +583,9 @@ describe('getActivityFeed', () => {
       },
     ]);
 
+    mockSessionCount.mockResolvedValue(0);
+    mockUserBookCount.mockResolvedValue(1);
+
     const result = await getActivityFeed();
 
     expect(result.success).toBe(true);
@@ -575,6 +616,8 @@ describe('getActivityFeed', () => {
     ]);
 
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(1);
+    mockUserBookCount.mockResolvedValue(0);
 
     mockKudosFindMany.mockResolvedValue([
       { sessionId: 'session-1', giverId: 'user-1' },
@@ -612,6 +655,8 @@ describe('getActivityFeed', () => {
     ]);
 
     mockUserBookFindMany.mockResolvedValue([]);
+    mockSessionCount.mockResolvedValue(1);
+    mockUserBookCount.mockResolvedValue(0);
 
     mockKudosFindMany.mockResolvedValue([
       { sessionId: 'session-1', giverId: 'user-3' },

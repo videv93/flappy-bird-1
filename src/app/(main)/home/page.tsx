@@ -31,6 +31,8 @@ export default async function HomePage() {
   // Fetch daily progress if goal is set
   let minutesRead = 0;
   if (user.dailyGoalMinutes) {
+    // TODO: Pass user's timezone from client cookie/preference instead of UTC
+    // Currently uses UTC which may show incorrect "today" for non-UTC users
     const progressResult = await getDailyProgress({ timezone: 'UTC' });
     if (progressResult.success) {
       minutesRead = progressResult.data.minutesRead;
@@ -43,7 +45,9 @@ export default async function HomePage() {
   let isStreakAtRisk = false;
   let freezesAvailable = 0;
   if (user.dailyGoalMinutes) {
-    const streakResult = await getStreakData();
+    // TODO: Pass user's timezone from client cookie/preference instead of UTC
+    // Currently uses UTC which may show incorrect "today" for non-UTC users
+    const streakResult = await getStreakData({ timezone: 'UTC' });
     if (streakResult.success) {
       currentStreak = streakResult.data.currentStreak;
       freezeUsedToday = streakResult.data.freezeUsedToday;
@@ -51,6 +55,7 @@ export default async function HomePage() {
     }
 
     // Check streak health for compassionate messaging
+    // TODO: Pass user's timezone from client cookie/preference instead of UTC
     const statusResult = await checkStreakStatus({ timezone: 'UTC' });
     if (statusResult.success) {
       isStreakAtRisk = statusResult.data.isAtRisk;

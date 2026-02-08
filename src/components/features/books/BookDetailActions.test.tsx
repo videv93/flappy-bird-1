@@ -4,6 +4,27 @@ import userEvent from '@testing-library/user-event';
 import { BookDetailActions } from './BookDetailActions';
 import type { BookSearchResult } from '@/services/books/types';
 
+// Mock next/navigation (used by SessionSummary)
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    refresh: vi.fn(),
+  }),
+}));
+
+// Mock auth-client (used by ReadingRoomPanel)
+vi.mock('@/lib/auth-client', () => ({
+  useSession: () => ({
+    data: { user: { id: 'user-1', name: 'Test User' } },
+  }),
+}));
+
+// Mock usePresenceStore (used by ReadingRoomPanel)
+vi.mock('@/stores/usePresenceStore', () => ({
+  usePresenceStore: vi.fn((selector: (state: Record<string, unknown>) => unknown) =>
+    selector({ currentChannel: null, memberCount: 0, members: new Map() })
+  ),
+}));
+
 // Mock idb-storage to prevent IndexedDB access in SessionTimer
 vi.mock('@/lib/idb-storage', () => ({
   idbStorage: {

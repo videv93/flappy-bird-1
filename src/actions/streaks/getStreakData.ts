@@ -1,10 +1,17 @@
 'use server';
 
+import { z } from 'zod';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { getYesterdayBounds } from '@/lib/dates';
+import { getTodayBounds } from '@/lib/dates';
 import type { ActionResult } from '@/actions/books/types';
+
+const getStreakDataSchema = z.object({
+  timezone: z.string().optional().default('UTC'),
+});
+
+export type GetStreakDataInput = z.input<typeof getStreakDataSchema>;
 
 export type StreakData = {
   currentStreak: number;
@@ -18,8 +25,10 @@ export type StreakData = {
  * Get the user's current streak data.
  * Returns default values if no UserStreak record exists yet.
  */
-export async function getStreakData(): Promise<ActionResult<StreakData>> {
+export async function getStreakData(input?: GetStreakDataInput): Promise<ActionResult<StreakData>> {
   try {
+    const validated = getStreakDataSchema.parse(input ?? {});
+
     const headersList = await headers();
     const session = await auth.api.getSession({ headers: headersList });
 
@@ -44,13 +53,13 @@ export async function getStreakData(): Promise<ActionResult<StreakData>> {
       };
     }
 
-    // Compute freezeUsedToday dynamically from yesterday's DailyProgress
+    // Compute freezeUsedToday dynamically from today's DailyProgress
     // instead of stale UserStreak.freezeUsedToday flag (which never resets)
-    const { start: yesterdayStart, end: yesterdayEnd } = getYesterdayBounds('UTC');
-    const yesterdayFreeze = await prisma.dailyProgress.findFirst({
+    const { start: todayStart, end: todayEnd } = getTodayBounds(validated.timezone);
+    const todayFreeze = await prisma.dailyProgress.findFirst({
       where: {
         userId: session.user.id,
-        date: { gte: yesterdayStart, lt: yesterdayEnd },
+        date: { gte: todayStart, lt: todayEnd },
         freezeUsed: true,
       },
     });
@@ -61,7 +70,7 @@ export async function getStreakData(): Promise<ActionResult<StreakData>> {
         currentStreak: streak.currentStreak,
         longestStreak: streak.longestStreak,
         lastGoalMetDate: streak.lastGoalMetDate?.toISOString() ?? null,
-        freezeUsedToday: !!yesterdayFreeze,
+        freezeUsedToday: !!todayFreeze,
         freezesAvailable: streak.freezesAvailable,
       },
     };

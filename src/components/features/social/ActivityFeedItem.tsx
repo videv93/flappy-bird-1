@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { BookCheck, Clock } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import type { ActivityItem } from '@/actions/social/getActivityFeed';
@@ -87,9 +88,11 @@ export function ActivityFeedItem({ activity }: ActivityFeedItemProps) {
       {/* Book Cover */}
       <Link href={`/book/${activity.bookId}`} className="shrink-0">
         {activity.bookCover ? (
-          <img
+          <Image
             src={activity.bookCover}
             alt={activity.bookTitle}
+            width={40}
+            height={64}
             className="h-16 w-10 object-cover rounded"
           />
         ) : (

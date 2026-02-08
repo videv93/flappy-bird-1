@@ -56,17 +56,21 @@ export function SessionTimer({ bookId, bookTitle, bookStatus, userId = '', timez
   const isActiveForOtherBook = isRunning && currentBookId !== null && currentBookId !== bookId;
 
   const autoJoinRoom = async () => {
-    const joinResult = await joinRoom(bookId);
-    if (joinResult.success) {
-      const membersResult = await getRoomMembers(bookId);
-      if (membersResult.success) {
-        const count = membersResult.data.length;
-        if (count <= 1) {
-          toast("You're the first reader here!", { duration: 3000 });
-        } else {
-          toast(`You're reading with ${count - 1} other${count - 1 === 1 ? '' : 's'}`, { duration: 3000 });
+    try {
+      const joinResult = await joinRoom(bookId);
+      if (joinResult.success) {
+        const membersResult = await getRoomMembers(bookId);
+        if (membersResult.success) {
+          const count = membersResult.data.length;
+          if (count <= 1) {
+            toast("You're the first reader here!", { duration: 3000 });
+          } else {
+            toast(`You're reading with ${count - 1} other${count - 1 === 1 ? '' : 's'}`, { duration: 3000 });
+          }
         }
       }
+    } catch (error) {
+      console.error('Failed to auto-join reading room:', error);
     }
   };
 

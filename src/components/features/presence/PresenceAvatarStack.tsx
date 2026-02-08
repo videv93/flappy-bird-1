@@ -14,6 +14,7 @@ interface PresenceAvatarStackProps {
 }
 
 function getInitial(name: string): string {
+  if (!name) return '?';
   return name.charAt(0).toUpperCase();
 }
 
@@ -48,7 +49,7 @@ export function PresenceAvatarStack({
     <div
       className={cn(
         'flex items-center',
-        isClickable && 'cursor-pointer',
+        isClickable && 'cursor-pointer min-h-[44px]',
         className,
       )}
       aria-label={readerLabel}
@@ -65,7 +66,7 @@ export function PresenceAvatarStack({
             layout={!shouldReduceMotion}
             initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.8 }}
+            exit={shouldReduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: 'easeOut' }}
           >
             <motion.div
@@ -78,7 +79,7 @@ export function PresenceAvatarStack({
                 shouldReduceMotion
                   ? {}
                   : {
-                      repeat: Infinity,
+                      repeat: 2,
                       duration: 3,
                       ease: 'easeInOut',
                       delay: index * 0.5,

@@ -23,9 +23,9 @@ vi.mock('@/lib/prisma', () => ({
 
 // Mock dates
 vi.mock('@/lib/dates', () => ({
-  getYesterdayBounds: vi.fn().mockReturnValue({
-    start: new Date('2026-02-05T00:00:00.000Z'),
-    end: new Date('2026-02-06T00:00:00.000Z'),
+  getTodayBounds: vi.fn().mockReturnValue({
+    start: new Date('2026-02-06T00:00:00.000Z'),
+    end: new Date('2026-02-07T00:00:00.000Z'),
   }),
 }));
 
@@ -48,7 +48,7 @@ describe('getStreakData', () => {
     });
     mockDailyProgressFindFirst.mockResolvedValue(null);
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result).toEqual({
       success: true,
@@ -69,7 +69,7 @@ describe('getStreakData', () => {
     mockGetSession.mockResolvedValue({ user: { id: 'user-1' } });
     mockFindUnique.mockResolvedValue(null);
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result).toEqual({
       success: true,
@@ -86,7 +86,7 @@ describe('getStreakData', () => {
   it('returns error for unauthenticated user', async () => {
     mockGetSession.mockResolvedValue(null);
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result).toEqual({
       success: false,
@@ -98,7 +98,7 @@ describe('getStreakData', () => {
   it('returns error when session has no user id', async () => {
     mockGetSession.mockResolvedValue({ user: { id: null } });
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result).toEqual({
       success: false,
@@ -110,7 +110,7 @@ describe('getStreakData', () => {
     mockGetSession.mockResolvedValue({ user: { id: 'user-1' } });
     mockFindUnique.mockRejectedValue(new Error('DB connection failed'));
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result).toEqual({
       success: false,
@@ -129,7 +129,7 @@ describe('getStreakData', () => {
     });
     mockDailyProgressFindFirst.mockResolvedValue(null);
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result).toEqual({
       success: true,
@@ -143,7 +143,7 @@ describe('getStreakData', () => {
     });
   });
 
-  it('returns freezeUsedToday true when yesterday has a freeze in DailyProgress', async () => {
+  it('returns freezeUsedToday true when today has a freeze in DailyProgress', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'user-1' } });
     mockFindUnique.mockResolvedValue({
       currentStreak: 10,
@@ -152,14 +152,14 @@ describe('getStreakData', () => {
       freezeUsedToday: true, // stale DB flag — ignored by getStreakData
       freezesAvailable: 1,
     });
-    // Dynamic check: yesterday's DailyProgress has a freeze
+    // Dynamic check: today's DailyProgress has a freeze
     mockDailyProgressFindFirst.mockResolvedValue({
       userId: 'user-1',
-      date: new Date('2026-02-05T00:00:00.000Z'),
+      date: new Date('2026-02-06T00:00:00.000Z'),
       freezeUsed: true,
     });
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -177,10 +177,10 @@ describe('getStreakData', () => {
       freezeUsedToday: true, // stale from previous day
       freezesAvailable: 1,
     });
-    // No freeze yesterday in DailyProgress
+    // No freeze today in DailyProgress
     mockDailyProgressFindFirst.mockResolvedValue(null);
 
-    const result = await getStreakData();
+    const result = await getStreakData({ timezone: 'UTC' });
 
     expect(result.success).toBe(true);
     if (result.success) {

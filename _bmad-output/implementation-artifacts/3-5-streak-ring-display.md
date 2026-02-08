@@ -1,6 +1,6 @@
 # Story 3.5: Streak Ring Display
 
-Status: review
+Status: done
 
 ## Story
 

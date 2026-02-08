@@ -1,6 +1,6 @@
 # Story 5.2: Join Reading Room
 
-Status: review
+Status: done
 
 ## Story
 

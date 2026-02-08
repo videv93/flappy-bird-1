@@ -25,6 +25,27 @@ vi.mock('framer-motion', () => ({
   useReducedMotion: () => false,
 }));
 
+// Mock sonner
+vi.mock('sonner', () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}));
+
+// Mock auth-client
+const mockUseSession = vi.fn();
+vi.mock('@/lib/auth-client', () => ({
+  useSession: (...args: unknown[]) => mockUseSession(...args),
+}));
+
+// Mock usePresenceStore
+const mockUsePresenceStore = vi.fn();
+vi.mock('@/stores/usePresenceStore', () => ({
+  usePresenceStore: (selector: (s: Record<string, unknown>) => unknown) =>
+    mockUsePresenceStore(selector),
+}));
+
 // Mock the usePresenceChannel hook
 const mockUsePresenceChannel = vi.fn();
 vi.mock('@/hooks/usePresenceChannel', () => ({
@@ -34,9 +55,11 @@ vi.mock('@/hooks/usePresenceChannel', () => ({
 // Mock server actions
 const mockJoinRoom = vi.fn();
 const mockLeaveRoom = vi.fn();
+const mockGetRoomMembers = vi.fn();
 vi.mock('@/actions/presence', () => ({
   joinRoom: (...args: unknown[]) => mockJoinRoom(...args),
   leaveRoom: (...args: unknown[]) => mockLeaveRoom(...args),
+  getRoomMembers: (...args: unknown[]) => mockGetRoomMembers(...args),
 }));
 
 const mockUpdateHeartbeat = vi.fn();
@@ -146,6 +169,13 @@ function createMemberMap(count: number): Map<string, PresenceMember> {
 describe('ReadingRoomPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseSession.mockReturnValue({
+      data: { user: { id: 'current-user-id' } },
+    });
+    mockUsePresenceStore.mockImplementation(
+      (selector: (s: Record<string, unknown>) => unknown) =>
+        selector({ currentChannel: null })
+    );
     mockUsePresenceChannel.mockReturnValue({
       members: new Map(),
       currentChannel: null,
@@ -156,6 +186,7 @@ describe('ReadingRoomPanel', () => {
     mockJoinRoom.mockResolvedValue({ success: true, data: { id: 'p1' } });
     mockLeaveRoom.mockResolvedValue({ success: true, data: { leftAt: new Date() } });
     mockUpdateHeartbeat.mockResolvedValue({ success: true, data: { updated: true } });
+    mockGetRoomMembers.mockResolvedValue({ success: true, data: [] });
   });
 
   // --- Preview (not joined) state ---

@@ -1,6 +1,6 @@
 # Story 3.3: Session History
 
-Status: review
+Status: done
 
 ## Story
 

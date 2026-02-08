@@ -44,8 +44,18 @@ vi.mock('lucide-react', () => ({
 }));
 
 describe('StreakRing', () => {
+  const localStorageMock = {
+    getItem: vi.fn(() => null),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    length: 0,
+    key: vi.fn(),
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock, writable: true });
   });
 
   // AC #2: Incomplete Goal State (Amber)
@@ -103,7 +113,8 @@ describe('StreakRing', () => {
       );
 
       expect(screen.getByTestId('check-icon')).toBeInTheDocument();
-      expect(screen.queryByText('5')).not.toBeInTheDocument();
+      // Streak count is always shown alongside the check icon
+      expect(screen.getByText('5')).toBeInTheDocument();
     });
 
     it('does not show "min to go" text when goal met', () => {
@@ -132,7 +143,8 @@ describe('StreakRing', () => {
       );
 
       expect(screen.getByTestId('snowflake-icon')).toBeInTheDocument();
-      expect(screen.queryByText('10')).not.toBeInTheDocument();
+      // Streak count is always shown alongside the snowflake icon
+      expect(screen.getByText('10')).toBeInTheDocument();
     });
 
     it('shows "Freeze day" text', () => {
@@ -161,6 +173,7 @@ describe('StreakRing', () => {
       );
 
       expect(mockToastSuccess).toHaveBeenCalledWith('Amazing! 7-day streak!');
+      expect(localStorageMock.setItem).toHaveBeenCalled();
     });
 
     it('triggers toast for 30-day milestone when goal is met', () => {
@@ -173,6 +186,7 @@ describe('StreakRing', () => {
       );
 
       expect(mockToastSuccess).toHaveBeenCalledWith('Amazing! 30-day streak!');
+      expect(localStorageMock.setItem).toHaveBeenCalled();
     });
 
     it('triggers toast for 100-day milestone when goal is met', () => {
@@ -185,6 +199,7 @@ describe('StreakRing', () => {
       );
 
       expect(mockToastSuccess).toHaveBeenCalledWith('Amazing! 100-day streak!');
+      expect(localStorageMock.setItem).toHaveBeenCalled();
     });
 
     it('does not trigger toast for non-milestone streaks', () => {

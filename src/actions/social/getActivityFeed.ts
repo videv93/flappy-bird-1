@@ -51,6 +51,9 @@ export type ActivityFeedData = {
   hasFollows: boolean;
 };
 
+// Time-bound filter: only show activities from the last 30 days
+const ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
 export async function getActivityFeed(
   input: GetActivityFeedInput = {}
 ): Promise<ActionResult<ActivityFeedData>> {
@@ -91,6 +94,7 @@ export async function getActivityFeed(
 
     // Cap per-type queries to prevent loading excessive data when merging
     const queryCap = limit + offset;
+    const activityCutoff = new Date(Date.now() - ACTIVITY_WINDOW_MS);
 
     // Fetch reading sessions and finished books in parallel
     const [sessions, finishedBooks] = await Promise.all([
@@ -99,6 +103,7 @@ export async function getActivityFeed(
         where: {
           userId: { in: followedUserIds },
           user: { showReadingActivity: true },
+          startedAt: { gte: activityCutoff },
         },
         orderBy: { startedAt: 'desc' },
         take: queryCap,
@@ -132,6 +137,7 @@ export async function getActivityFeed(
           status: 'FINISHED',
           deletedAt: null,
           user: { showReadingActivity: true },
+          dateFinished: { gte: activityCutoff },
         },
         orderBy: { dateFinished: 'desc' },
         take: queryCap,
@@ -161,19 +167,68 @@ export async function getActivityFeed(
       }),
     ]);
 
-    // Fetch kudos data for all sessions
-    const sessionIds = sessions.map((s) => s.id);
+    // Run separate count queries for accurate total (Issue 1)
+    const [sessionCount, finishedBookCount] = await Promise.all([
+      prisma.readingSession.count({
+        where: {
+          userId: { in: followedUserIds },
+          user: { showReadingActivity: true },
+          startedAt: { gte: activityCutoff },
+        },
+      }),
+      prisma.userBook.count({
+        where: {
+          userId: { in: followedUserIds },
+          status: 'FINISHED',
+          deletedAt: null,
+          user: { showReadingActivity: true },
+          dateFinished: { gte: activityCutoff },
+        },
+      }),
+    ]);
+
+    const total = sessionCount + finishedBookCount;
+
+    // Merge into unified activity list (without kudos data yet)
+    const allActivities: (
+      | { type: 'session'; session: (typeof sessions)[number]; timestamp: Date }
+      | { type: 'finished'; finishedBook: (typeof finishedBooks)[number]; timestamp: Date }
+    )[] = [
+      ...sessions.map((s) => ({
+        type: 'session' as const,
+        session: s,
+        timestamp: s.startedAt,
+      })),
+      ...finishedBooks.map((fb) => ({
+        type: 'finished' as const,
+        finishedBook: fb,
+        timestamp: fb.dateFinished || fb.createdAt,
+      })),
+    ];
+
+    // Sort by timestamp descending (most recent first)
+    allActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+    // Apply pagination first, then fetch kudos only for paginated items (Issue 2)
+    const paginatedRaw = allActivities.slice(offset, offset + limit);
+
+    // Extract session IDs from paginated results only
+    const paginatedSessionIds = paginatedRaw
+      .filter((a) => a.type === 'session')
+      .map((a) => a.session.id);
+
     const sessionKudos =
-      sessionIds.length > 0
+      paginatedSessionIds.length > 0
         ? await prisma.kudos.findMany({
-            where: { sessionId: { in: sessionIds } },
+            where: { sessionId: { in: paginatedSessionIds } },
             select: { sessionId: true, giverId: true },
           })
         : [];
 
-    // Merge into unified activity list
-    const allActivities: ActivityItem[] = [
-      ...sessions.map((s): SessionActivity => {
+    // Build final activity items with kudos data
+    const paginatedActivities: ActivityItem[] = paginatedRaw.map((item) => {
+      if (item.type === 'session') {
+        const s = item.session;
         const kudosForSession = sessionKudos.filter(
           (k) => k.sessionId === s.id
         );
@@ -192,10 +247,10 @@ export async function getActivityFeed(
           userGaveKudos: kudosForSession.some(
             (k) => k.giverId === currentUserId
           ),
-        };
-      }),
-      ...finishedBooks.map(
-        (fb): FinishedBookActivity => ({
+        } satisfies SessionActivity;
+      } else {
+        const fb = item.finishedBook;
+        return {
           type: 'finished',
           id: fb.id,
           userId: fb.userId,
@@ -206,16 +261,9 @@ export async function getActivityFeed(
           bookCover: fb.book.coverUrl,
           bookAuthor: fb.book.author,
           timestamp: fb.dateFinished || fb.createdAt,
-        })
-      ),
-    ];
-
-    // Sort by timestamp descending (most recent first)
-    allActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-    // Apply pagination
-    const paginatedActivities = allActivities.slice(offset, offset + limit);
-    const total = allActivities.length;
+        } satisfies FinishedBookActivity;
+      }
+    });
 
     return {
       success: true,

@@ -4,8 +4,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
 import { usePresenceChannel } from '@/hooks/usePresenceChannel';
-import { joinRoom, leaveRoom } from '@/actions/presence';
+import { usePresenceStore } from '@/stores/usePresenceStore';
+import { joinRoom, leaveRoom, getRoomMembers } from '@/actions/presence';
 import { updatePresenceHeartbeat } from '@/actions/presence/updatePresenceHeartbeat';
 import { PresenceAvatarStack } from './PresenceAvatarStack';
 import { OccupantDetailSheet } from './OccupantDetailSheet';
@@ -16,6 +19,8 @@ interface ReadingRoomPanelProps {
 }
 
 export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [isJoined, setIsJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -26,9 +31,17 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
     enabled: isJoined,
   });
 
+  // Guard against stale cross-book data in the global presence store
+  const expectedChannel = `presence-room-${bookId}`;
+  const currentChannel = usePresenceStore((s) => s.currentChannel);
+  const isStaleData = currentChannel !== null && currentChannel !== expectedChannel;
+  const safeMemberCount = isStaleData ? 0 : memberCount;
+  const safeMembers = isStaleData ? new Map() : members;
+
   // Heartbeat: update lastActiveAt every 5 minutes while joined
   const startHeartbeat = useCallback(() => {
     if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+    updatePresenceHeartbeat(bookId);
     heartbeatRef.current = setInterval(() => {
       updatePresenceHeartbeat(bookId);
     }, 5 * 60 * 1000);
@@ -50,22 +63,52 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
     return stopHeartbeat;
   }, [isJoined, startHeartbeat, stopHeartbeat]);
 
+  // Check if user has existing active presence on mount
+  useEffect(() => {
+    getRoomMembers(bookId).then((result) => {
+      if (result.success && result.data.some((m: any) => m.id === userId)) {
+        setIsJoined(true);
+      }
+    }).catch(() => {});
+  }, [bookId, userId]);
+
+  // Close sheet when member count drops to sole reader
+  useEffect(() => {
+    if (safeMemberCount <= 1) {
+      setIsSheetOpen(false);
+    }
+  }, [safeMemberCount]);
+
   const handleJoin = async () => {
     setIsLoading(true);
-    const result = await joinRoom(bookId);
-    if (result.success) {
-      setIsJoined(true);
+    try {
+      const result = await joinRoom(bookId);
+      if (result.success) {
+        setIsJoined(true);
+      } else {
+        toast.error('Failed to join reading room');
+      }
+      setIsLoading(false);
+    } catch {
+      toast.error('Something went wrong');
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleLeave = async () => {
     setIsLoading(true);
-    const result = await leaveRoom(bookId);
-    if (result.success) {
-      setIsJoined(false);
+    try {
+      const result = await leaveRoom(bookId);
+      if (result.success) {
+        setIsJoined(false);
+      } else {
+        toast.error('Failed to leave reading room');
+      }
+      setIsLoading(false);
+    } catch {
+      toast.error('Something went wrong');
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const connectionIndicator = () => {
@@ -128,8 +171,8 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
   }
 
   // Joined state
-  const isSoleReader = memberCount <= 1;
-  const showSheet = memberCount > 0;
+  const isSoleReader = safeMemberCount <= 1;
+  const showSheet = safeMemberCount > 1;
 
   return (
     <div
@@ -170,12 +213,12 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
       ) : (
         <div className="flex items-center gap-2">
           <PresenceAvatarStack
-            members={members}
+            members={safeMembers}
             onClick={() => setIsSheetOpen(true)}
             aria-expanded={isSheetOpen}
           />
           <span className="text-xs text-amber-600" data-testid="reader-count">
-            {memberCount} {memberCount === 1 ? 'reader' : 'readers'}
+            {safeMemberCount} {safeMemberCount === 1 ? 'reader' : 'readers'}
           </span>
         </div>
       )}
@@ -184,7 +227,7 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
         <OccupantDetailSheet
           open={isSheetOpen}
           onOpenChange={setIsSheetOpen}
-          members={members}
+          members={safeMembers}
         />
       )}
     </div>

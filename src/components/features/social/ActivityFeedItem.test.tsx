@@ -3,6 +3,14 @@ import { render, screen } from '@testing-library/react';
 import { ActivityFeedItem } from './ActivityFeedItem';
 import type { SessionActivity, FinishedBookActivity } from '@/actions/social/getActivityFeed';
 
+// Mock next/image
+vi.mock('next/image', () => ({
+  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+    <img {...props} />
+  ),
+}));
+
 // Mock next/link
 vi.mock('next/link', () => ({
   default: ({
@@ -58,6 +66,8 @@ vi.mock('@/components/features/social/KudosButton', () => ({
 }));
 
 // Mock utils
+const formatRelativeTime = vi.fn().mockReturnValue('2 hours ago');
+
 vi.mock('@/lib/utils', () => ({
   formatDuration: (seconds: number) => {
     if (seconds < 60) return '< 1 min';
@@ -68,9 +78,7 @@ vi.mock('@/lib/utils', () => ({
     if (remainingMinutes === 0) return `${hours}h`;
     return `${hours}h ${remainingMinutes}min`;
   },
-  formatRelativeTime: (date: Date) => {
-    return '2 hours ago';
-  },
+  formatRelativeTime: (...args: unknown[]) => formatRelativeTime(...args),
   getInitials: (name: string | null) => {
     if (!name) return '?';
     return name
@@ -147,8 +155,9 @@ describe('ActivityFeedItem', () => {
   });
 
   it('formats relative timestamp correctly', () => {
+    formatRelativeTime.mockClear();
     render(<ActivityFeedItem activity={sessionActivity} />);
-    expect(screen.getByText('2 hours ago')).toBeInTheDocument();
+    expect(formatRelativeTime).toHaveBeenCalledWith(sessionActivity.timestamp);
   });
 
   it('links to book detail page from book title', () => {

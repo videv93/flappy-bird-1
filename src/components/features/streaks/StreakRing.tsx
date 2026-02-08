@@ -29,7 +29,6 @@ export function StreakRing({
   size = 'md',
 }: StreakRingProps) {
   const prefersReducedMotion = useReducedMotion();
-  const milestoneToastedRef = useRef(false);
   const milestoneStoreRef = useRef({ visible: false, listeners: new Set<() => void>() });
 
   // Stable subscribe function for useSyncExternalStore
@@ -61,8 +60,11 @@ export function StreakRing({
 
   // Milestone celebration — toast + animation via external store
   useEffect(() => {
-    if (goalMet && isMilestone && !milestoneToastedRef.current) {
-      milestoneToastedRef.current = true;
+    if (goalMet && isMilestone) {
+      const storageKey = `milestone-toasted-${currentStreak}-${new Date().toDateString()}`;
+      if (localStorage.getItem(storageKey)) return;
+
+      localStorage.setItem(storageKey, '1');
       toast.success(`Amazing! ${currentStreak}-day streak!`);
       if (!prefersReducedMotion) {
         const store = milestoneStoreRef.current;
@@ -133,24 +135,12 @@ export function StreakRing({
         </svg>
 
         {/* Center content */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {goalMet ? (
-            <Check
-              size={config.iconSize}
-              style={{ color: 'var(--streak-success)' }}
-              aria-hidden="true"
-            />
-          ) : showFrozen ? (
-            <Snowflake
-              size={config.iconSize}
-              style={{ color: 'var(--streak-frozen)' }}
-              aria-hidden="true"
-            />
-          ) : (
-            <span className={`font-bold ${config.fontSize}`} style={{ color: ringColor }}>
-              {currentStreak}
-            </span>
-          )}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={`font-bold ${config.fontSize}`} style={{ color: ringColor }} data-testid="streak-count">
+            {currentStreak}
+          </span>
+          {goalMet && <Check className="h-4 w-4 text-green-500" aria-hidden="true" />}
+          {showFrozen && !goalMet && <Snowflake className="h-4 w-4 text-blue-400" aria-hidden="true" />}
         </div>
 
         {/* Milestone sparkle */}
