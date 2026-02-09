@@ -32,6 +32,21 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+// Moderation status for ModerationItem
+enum ModerationStatus {
+  PENDING
+  DISMISSED
+  WARNED
+  REMOVED
+  SUSPENDED
+}
+
+// Content type for ModerationItem
+enum ContentType {
+  PROFILE_BIO
+  READING_ROOM_DESCRIPTION
+}
+
 // Reading status enum for UserBook
 enum ReadingStatus {
   CURRENTLY_READING
@@ -67,9 +82,12 @@ model User {
   kudosGiven      Kudos[]         @relation("KudosGiven")
   kudosReceived   Kudos[]         @relation("KudosReceived")
   roomPresences   RoomPresence[]
-  authorClaims    AuthorClaim[]  @relation("author_claims")
-  reviewedClaims  AuthorClaim[]  @relation("reviewed_claims")
-  adminActions    AdminAction[]  @relation("admin_actions")
+  authorClaims       AuthorClaim[]      @relation("author_claims")
+  reviewedClaims     AuthorClaim[]      @relation("reviewed_claims")
+  adminActions       AdminAction[]      @relation("admin_actions")
+  reportsSubmitted   ModerationItem[]   @relation("reports_submitted")
+  reportsReceived    ModerationItem[]   @relation("reports_received")
+  moderationReviews  ModerationItem[]   @relation("moderation_reviews")
 
   @@map("users")
 }
@@ -293,6 +311,31 @@ model AuthorClaim {
   @@index([status])
   @@index([bookId])
   @@map("author_claims")
+}
+
+model ModerationItem {
+  id              String           @id @default(cuid())
+  contentType     ContentType      @map("content_type")
+  contentId       String           @map("content_id")
+  reporterId      String           @map("reporter_id")
+  reportedUserId  String           @map("reported_user_id")
+  reason          String
+  status          ModerationStatus @default(PENDING)
+  reviewedById    String?          @map("reviewed_by_id")
+  reviewedAt      DateTime?        @map("reviewed_at")
+  adminNotes      String?          @map("admin_notes")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  reporter     User  @relation("reports_submitted", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User  @relation("reports_received", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reviewer     User? @relation("moderation_reviews", fields: [reviewedById], references: [id])
+
+  @@unique([reporterId, contentType, contentId])
+  @@index([status])
+  @@index([reportedUserId])
+  @@index([createdAt])
+  @@map("moderation_items")
 }
 
 model AdminAction {

@@ -1,0 +1,1 @@
+export { flagContent } from './flagContent';

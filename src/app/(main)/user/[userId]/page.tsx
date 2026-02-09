@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FollowButton } from '@/components/features/social/FollowButton';
 import { RecentSessionsList } from '@/components/features/social/RecentSessionsList';
 import { FinishedBooksList } from '@/components/features/social/FinishedBooksList';
+import { FlagContentButton } from '@/components/features/moderation/FlagContentButton';
 
 export default async function UserProfilePage({
   params,
@@ -59,7 +60,10 @@ export default async function UserProfilePage({
         <div className="text-center">
           <h1 className="text-xl font-semibold">{displayName}</h1>
           {user.bio && (
-            <p className="mt-1 text-sm text-muted-foreground">{user.bio}</p>
+            <div className="mt-1 flex items-center justify-center gap-1">
+              <p className="text-sm text-muted-foreground">{user.bio}</p>
+              <FlagContentButton contentType="PROFILE_BIO" contentId={user.id} />
+            </div>
           )}
         </div>
 

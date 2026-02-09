@@ -17,3 +17,25 @@ export const adminActionSchema = z.object({
 });
 
 export type AdminActionInput = z.infer<typeof adminActionSchema>;
+
+// Moderation schemas
+
+export const contentTypeEnum = z.enum(['PROFILE_BIO', 'READING_ROOM_DESCRIPTION']);
+
+export const moderationStatusEnum = z.enum(['PENDING', 'DISMISSED', 'WARNED', 'REMOVED', 'SUSPENDED']);
+
+export const flagContentSchema = z.object({
+  contentType: contentTypeEnum,
+  contentId: z.string().min(1, 'Content ID is required'),
+  reason: z.string().min(10, 'Reason must be at least 10 characters').max(500, 'Reason must be at most 500 characters'),
+});
+
+export type FlagContentInput = z.infer<typeof flagContentSchema>;
+
+export const reviewModerationItemSchema = z.object({
+  moderationItemId: z.string().min(1, 'Moderation item ID is required'),
+  action: z.enum(['dismiss', 'warn', 'remove', 'suspend']),
+  adminNotes: z.string().max(1000).optional(),
+});
+
+export type ReviewModerationItemInput = z.infer<typeof reviewModerationItemSchema>;
