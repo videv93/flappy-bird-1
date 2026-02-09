@@ -1,6 +1,6 @@
 # Story 5.5: Author Claim & Verification
 
-Status: review
+Status: done
 
 ## Story
 
@@ -367,13 +367,17 @@ Claude Opus 4.6
 New files:
 - prisma/schema.prisma (modified - added enums and AuthorClaim model)
 - src/lib/validation/author.ts
+- src/lib/admin.ts
 - src/actions/authors/submitClaim.ts
 - src/actions/authors/submitClaim.test.ts
 - src/actions/authors/getClaimStatus.ts
+- src/actions/authors/getClaimStatus.test.ts
 - src/actions/authors/getPendingClaims.ts
+- src/actions/authors/getPendingClaims.test.ts
 - src/actions/authors/reviewClaim.ts
 - src/actions/authors/reviewClaim.test.ts
 - src/actions/authors/getBookEngagement.ts
+- src/actions/authors/getBookEngagement.test.ts
 - src/actions/authors/index.ts
 - src/components/features/authors/AuthorClaimForm.tsx
 - src/components/features/authors/AuthorClaimForm.test.tsx
@@ -382,6 +386,7 @@ New files:
 - src/components/features/authors/AdminClaimReview.tsx
 - src/components/features/authors/AdminClaimReview.test.tsx
 - src/components/features/authors/AuthorEngagementMetrics.tsx
+- src/components/features/authors/AuthorEngagementMetrics.test.tsx
 - src/components/features/authors/index.ts
 - src/app/(admin)/admin/claims/layout.tsx
 - src/app/(admin)/admin/claims/page.tsx
@@ -393,7 +398,7 @@ Modified files:
 - src/actions/presence/joinRoom.ts (added isAuthor check from AuthorClaim on room join)
 - src/actions/presence/joinRoom.test.ts (added authorClaim mock to transaction)
 - src/components/features/books/BookDetailHero.tsx (added claim link, status badge, claim form integration)
-- src/components/features/books/BookDetailHero.test.tsx (added mocks for new dependencies, 2 new tests)
+- src/components/features/books/BookDetailHero.test.tsx (added mocks for new dependencies, 3 new tests)
 - src/components/features/books/BookDetail.tsx (added AuthorEngagementMetrics integration)
 - src/components/features/books/BookDetail.test.tsx (added AuthorEngagementMetrics mock)
 - src/components/providers/NotificationProvider.tsx (added author claim event listeners)
@@ -403,3 +408,4 @@ Modified files:
 ## Change Log
 
 - 2026-02-09: Implemented Story 5.5 - Author Claim & Verification. Added AuthorClaim Prisma model with enums, server actions for claim submission and admin review, AuthorClaimForm component with Sheet UI, ClaimStatusBadge, AdminClaimReview page, real-time Pusher notifications for claim decisions, author engagement metrics display, and comprehensive test coverage (31 new tests, 74 total passing).
+- 2026-02-09: Code review fixes (8 issues fixed): [H1] Added error feedback to AdminClaimReview on review failure. [H2] Removed unsafe non-null assertion in BookDetailHero. [H3] Added 20 new tests for getClaimStatus (5), getPendingClaims (5), getBookEngagement (5), AuthorEngagementMetrics (4), BookDetailHero AC#1 (1). [H4] Implemented AC#1 - hides "Are you the author?" link when another user is already verified as author. [M1] Wrapped submitClaim check+delete+create in Prisma transaction to prevent race conditions. [M2] Added await to Pusher trigger in reviewClaim per reference pattern. [M3] Extracted shared admin ID util to src/lib/admin.ts (DRY). [M4] Fixed admin layout to use per-request admin check instead of stale module-scope constant. Total: 1247 tests passing.

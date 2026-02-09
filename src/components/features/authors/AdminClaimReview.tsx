@@ -23,13 +23,20 @@ interface AdminClaimReviewProps {
 export function AdminClaimReview({ claims: initialClaims }: AdminClaimReviewProps) {
   const [claims, setClaims] = useState(initialClaims);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [errorId, setErrorId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleReview = async (claimId: string, decision: 'approve' | 'reject') => {
     setLoadingId(claimId);
+    setErrorId(null);
+    setErrorMessage(null);
     const result = await reviewClaim({ claimId, decision });
 
     if (result.success) {
       setClaims((prev) => prev.filter((c) => c.id !== claimId));
+    } else {
+      setErrorId(claimId);
+      setErrorMessage(result.error);
     }
     setLoadingId(null);
   };
@@ -119,6 +126,14 @@ export function AdminClaimReview({ claims: initialClaims }: AdminClaimReviewProp
               </p>
             </div>
           </CardContent>
+
+          {errorId === claim.id && errorMessage && (
+            <div className="px-6 pb-2">
+              <p className="text-sm text-destructive" role="alert" data-testid={`error-${claim.id}`}>
+                {errorMessage}
+              </p>
+            </div>
+          )}
 
           <CardFooter className="gap-2">
             <Button

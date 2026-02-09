@@ -86,7 +86,7 @@ development_status:
   5-2-join-reading-room: done
   5-3-see-room-occupants: done
   5-4-leave-reading-room: done
-  5-5-author-claim-verification: review
+  5-5-author-claim-verification: done
   5-6-author-presence-display: backlog
   5-7-author-join-notification: backlog
   epic-5-retrospective: optional

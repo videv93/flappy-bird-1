@@ -160,4 +160,10 @@ describe('BookDetailHero', () => {
 
     expect(screen.queryByTestId('author-claim-section')).not.toBeInTheDocument();
   });
+
+  it('hides "Are you the author?" link when authorVerified is true (AC#1)', () => {
+    render(<BookDetailHero book={mockBook} authorVerified />);
+
+    expect(screen.queryByTestId('are-you-author-link')).not.toBeInTheDocument();
+  });
 });

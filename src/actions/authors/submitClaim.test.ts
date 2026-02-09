@@ -13,24 +13,28 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
+const mockFindUnique = vi.fn();
+const mockCreate = vi.fn();
+const mockDelete = vi.fn();
+
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    authorClaim: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      delete: vi.fn(),
-    },
+    $transaction: vi.fn((fn: (tx: unknown) => unknown) =>
+      fn({
+        authorClaim: {
+          findUnique: mockFindUnique,
+          create: mockCreate,
+          delete: mockDelete,
+        },
+      })
+    ),
   },
 }));
 
 import { submitClaim } from './submitClaim';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 
 const mockGetSession = auth.api.getSession as unknown as ReturnType<typeof vi.fn>;
-const mockFindUnique = prisma.authorClaim.findUnique as unknown as ReturnType<typeof vi.fn>;
-const mockCreate = prisma.authorClaim.create as unknown as ReturnType<typeof vi.fn>;
-const mockDelete = prisma.authorClaim.delete as unknown as ReturnType<typeof vi.fn>;
 
 describe('submitClaim', () => {
   beforeEach(() => {

@@ -89,9 +89,9 @@ export function BookDetailHero({
         {/* Author claim section */}
         {!isExternal && (
           <div className="mt-2" data-testid="author-claim-section">
-            {claimStatus?.hasClaim ? (
-              <ClaimStatusBadge status={claimStatus.status!} />
-            ) : (
+            {claimStatus?.hasClaim && claimStatus.status ? (
+              <ClaimStatusBadge status={claimStatus.status} />
+            ) : !authorVerified ? (
               <button
                 onClick={() => setClaimFormOpen(true)}
                 className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors min-h-[44px] px-2 flex items-center"
@@ -99,7 +99,7 @@ export function BookDetailHero({
               >
                 Are you the author?
               </button>
-            )}
+            ) : null}
           </div>
         )}
 

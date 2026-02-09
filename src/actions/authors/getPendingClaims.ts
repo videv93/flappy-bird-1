@@ -3,11 +3,8 @@
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { isAdmin } from '@/lib/admin';
 import type { ActionResult } from '@/actions/books/types';
-
-function getAdminIds(): string[] {
-  return (process.env.ADMIN_USER_IDS ?? '').split(',').filter(Boolean);
-}
 
 export interface PendingClaimData {
   id: string;
@@ -39,7 +36,7 @@ export async function getPendingClaims(): Promise<
       return { success: false, error: 'Unauthorized' };
     }
 
-    if (!getAdminIds().includes(session.user.id)) {
+    if (!isAdmin(session.user.id)) {
       return { success: false, error: 'Forbidden' };
     }
 

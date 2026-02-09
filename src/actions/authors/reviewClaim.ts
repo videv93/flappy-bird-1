@@ -5,12 +5,9 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { reviewClaimSchema } from '@/lib/validation/author';
 import { getPusher } from '@/lib/pusher-server';
+import { isAdmin } from '@/lib/admin';
 import type { ActionResult } from '@/actions/books/types';
 import type { AuthorClaim } from '@prisma/client';
-
-function getAdminIds(): string[] {
-  return (process.env.ADMIN_USER_IDS ?? '').split(',').filter(Boolean);
-}
 
 export async function reviewClaim(
   input: unknown
@@ -24,7 +21,7 @@ export async function reviewClaim(
       return { success: false, error: 'Unauthorized' };
     }
 
-    if (!getAdminIds().includes(session.user.id)) {
+    if (!isAdmin(session.user.id)) {
       return { success: false, error: 'Forbidden' };
     }
 
@@ -60,7 +57,7 @@ export async function reviewClaim(
 
     try {
       const pusher = getPusher();
-      pusher?.trigger(`private-user-${claim.userId}`, eventName, {
+      await pusher?.trigger(`private-user-${claim.userId}`, eventName, {
         bookTitle: claim.book.title,
         claimId: claim.id,
       });

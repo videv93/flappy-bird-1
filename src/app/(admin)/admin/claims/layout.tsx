@@ -1,8 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
-
-const ADMIN_IDS = (process.env.ADMIN_USER_IDS ?? '').split(',').filter(Boolean);
+import { isAdmin } from '@/lib/admin';
 
 export default async function AdminClaimsLayout({
   children,
@@ -12,7 +11,7 @@ export default async function AdminClaimsLayout({
   const headersList = await headers();
   const session = await auth.api.getSession({ headers: headersList });
 
-  if (!session?.user?.id || !ADMIN_IDS.includes(session.user.id)) {
+  if (!session?.user?.id || !isAdmin(session.user.id)) {
     redirect('/home');
   }
 

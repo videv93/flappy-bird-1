@@ -23,12 +23,13 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/pusher-server', () => ({
   getPusher: vi.fn(() => ({
-    trigger: vi.fn(),
+    trigger: vi.fn().mockResolvedValue(undefined),
   })),
 }));
 
-// Mock ADMIN_USER_IDS env
-vi.stubEnv('ADMIN_USER_IDS', 'admin-1,admin-2');
+vi.mock('@/lib/admin', () => ({
+  isAdmin: vi.fn((id: string) => ['admin-1', 'admin-2'].includes(id)),
+}));
 
 import { reviewClaim } from './reviewClaim';
 import { auth } from '@/lib/auth';

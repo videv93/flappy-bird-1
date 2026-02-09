@@ -19,43 +19,52 @@ export async function submitClaim(
       return { success: false, error: 'Unauthorized' };
     }
 
-    // Check for existing pending or approved claim for same user+book
-    const existingClaim = await prisma.authorClaim.findUnique({
-      where: {
-        userId_bookId: {
+    // Use transaction to prevent race conditions on check + delete + create
+    const claim = await prisma.$transaction(async (tx) => {
+      const existingClaim = await tx.authorClaim.findUnique({
+        where: {
+          userId_bookId: {
+            userId: session.user.id,
+            bookId: validated.bookId,
+          },
+        },
+      });
+
+      if (existingClaim) {
+        if (existingClaim.status === 'PENDING') {
+          throw new Error('You already have a pending claim for this book');
+        }
+        if (existingClaim.status === 'APPROVED') {
+          throw new Error('You are already verified as the author of this book');
+        }
+        // If REJECTED, allow re-submission by deleting the old claim
+        await tx.authorClaim.delete({
+          where: { id: existingClaim.id },
+        });
+      }
+
+      return tx.authorClaim.create({
+        data: {
           userId: session.user.id,
           bookId: validated.bookId,
+          verificationMethod: validated.verificationMethod,
+          verificationUrl: validated.verificationUrl || null,
+          verificationText: validated.verificationText || null,
         },
-      },
-    });
-
-    if (existingClaim) {
-      if (existingClaim.status === 'PENDING') {
-        return { success: false, error: 'You already have a pending claim for this book' };
-      }
-      if (existingClaim.status === 'APPROVED') {
-        return { success: false, error: 'You are already verified as the author of this book' };
-      }
-      // If REJECTED, allow re-submission by deleting the old claim
-      await prisma.authorClaim.delete({
-        where: { id: existingClaim.id },
       });
-    }
-
-    const claim = await prisma.authorClaim.create({
-      data: {
-        userId: session.user.id,
-        bookId: validated.bookId,
-        verificationMethod: validated.verificationMethod,
-        verificationUrl: validated.verificationUrl || null,
-        verificationText: validated.verificationText || null,
-      },
     });
 
     return { success: true, data: claim };
   } catch (error) {
     if (error && typeof error === 'object' && 'issues' in error) {
       return { success: false, error: 'Invalid input' };
+    }
+    // Transaction throws Error with user-facing messages for duplicate claims
+    if (error instanceof Error && (
+      error.message.includes('pending claim') ||
+      error.message.includes('already verified')
+    )) {
+      return { success: false, error: error.message };
     }
     console.error('submitClaim error:', error);
     return { success: false, error: 'Failed to submit claim' };
