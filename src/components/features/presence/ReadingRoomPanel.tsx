@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useSession } from '@/lib/auth-client';
 import { usePresenceChannel } from '@/hooks/usePresenceChannel';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { usePresenceStore } from '@/stores/usePresenceStore';
 import { joinRoom, leaveRoom, getRoomMembers } from '@/actions/presence';
 import { updatePresenceHeartbeat } from '@/actions/presence/updatePresenceHeartbeat';
@@ -24,6 +25,7 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
   const [isJoined, setIsJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [showReturnMessage, setShowReturnMessage] = useState(false);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { members, connectionMode, memberCount } = usePresenceChannel({
@@ -37,6 +39,10 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
   const isStaleData = currentChannel !== null && currentChannel !== expectedChannel;
   const safeMemberCount = isStaleData ? 0 : memberCount;
   const safeMembers = isStaleData ? new Map() : members;
+  const memberCountRef = useRef(safeMemberCount);
+  useEffect(() => {
+    memberCountRef.current = safeMemberCount;
+  });
 
   // Heartbeat: update lastActiveAt every 5 minutes while joined
   const startHeartbeat = useCallback(() => {
@@ -54,14 +60,39 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
     }
   }, []);
 
+  // Idle timeout: auto-leave after 30 minutes of inactivity
+  const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+  const handleIdleTimeout = useCallback(async () => {
+    try {
+      await leaveRoom(bookId);
+      setShowReturnMessage(memberCountRef.current <= 1);
+      setIsJoined(false);
+      toast.info("You've been idle for 30 minutes and left the reading room.");
+    } catch {
+      // Silently handle — user may have already left
+    }
+  }, [bookId]);
+
+  const { reset: resetIdleTimer } = useIdleTimeout(
+    handleIdleTimeout,
+    IDLE_TIMEOUT_MS,
+    isJoined,
+  );
+
+  // Reset idle timer when heartbeat fires (heartbeat confirms the page is open)
+  const startHeartbeatWithIdleReset = useCallback(() => {
+    startHeartbeat();
+    resetIdleTimer();
+  }, [startHeartbeat, resetIdleTimer]);
+
   useEffect(() => {
     if (isJoined) {
-      startHeartbeat();
+      startHeartbeatWithIdleReset();
     } else {
       stopHeartbeat();
     }
     return stopHeartbeat;
-  }, [isJoined, startHeartbeat, stopHeartbeat]);
+  }, [isJoined, startHeartbeatWithIdleReset, stopHeartbeat]);
 
   // Check if user has existing active presence on mount
   useEffect(() => {
@@ -85,6 +116,7 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
       const result = await joinRoom(bookId);
       if (result.success) {
         setIsJoined(true);
+        setShowReturnMessage(false);
       } else {
         toast.error('Failed to join reading room');
       }
@@ -100,6 +132,7 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
     try {
       const result = await leaveRoom(bookId);
       if (result.success) {
+        setShowReturnMessage(safeMemberCount <= 1);
         setIsJoined(false);
       } else {
         toast.error('Failed to leave reading room');
@@ -166,6 +199,14 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
             {isLoading ? 'Joining...' : 'Join Room'}
           </Button>
         </div>
+        {showReturnMessage && (
+          <p
+            className="text-sm text-amber-600 italic mt-2"
+            data-testid="return-message"
+          >
+            Be the first to return!
+          </p>
+        )}
       </div>
     );
   }

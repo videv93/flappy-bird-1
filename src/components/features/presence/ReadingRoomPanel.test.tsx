@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReadingRoomPanel } from './ReadingRoomPanel';
@@ -30,8 +30,16 @@ vi.mock('sonner', () => ({
   toast: {
     error: vi.fn(),
     success: vi.fn(),
+    info: vi.fn(),
   },
 }));
+
+import { toast } from 'sonner';
+const mockToast = toast as unknown as {
+  error: ReturnType<typeof vi.fn>;
+  success: ReturnType<typeof vi.fn>;
+  info: ReturnType<typeof vi.fn>;
+};
 
 // Mock auth-client
 const mockUseSession = vi.fn();
@@ -50,6 +58,18 @@ vi.mock('@/stores/usePresenceStore', () => ({
 const mockUsePresenceChannel = vi.fn();
 vi.mock('@/hooks/usePresenceChannel', () => ({
   usePresenceChannel: (...args: unknown[]) => mockUsePresenceChannel(...args),
+}));
+
+// Mock useIdleTimeout hook - capture callback to simulate idle timeout in tests
+let capturedIdleCallback: (() => void) | null = null;
+let capturedIdleEnabled: boolean = false;
+const mockIdleReset = vi.fn();
+vi.mock('@/hooks/useIdleTimeout', () => ({
+  useIdleTimeout: (callback: () => void, _timeoutMs: number, enabled: boolean) => {
+    capturedIdleCallback = callback;
+    capturedIdleEnabled = enabled;
+    return { reset: mockIdleReset };
+  },
 }));
 
 // Mock server actions
@@ -470,5 +490,96 @@ describe('ReadingRoomPanel', () => {
     const links = screen.getAllByRole('link');
     expect(links[0]).toHaveAttribute('href', '/profile/user-0');
     expect(links[1]).toHaveAttribute('href', '/profile/user-1');
+  });
+
+  // --- Last person leaves (Story 5.4, AC #5) ---
+
+  it('shows preview state after last person leaves via manual button', async () => {
+    const user = userEvent.setup();
+    // Start with the user joined as sole reader
+    mockUsePresenceChannel.mockReturnValue({
+      members: createMemberMap(1),
+      currentChannel: 'presence-room-book-1',
+      isConnected: true,
+      connectionMode: 'realtime',
+      memberCount: 1,
+    });
+    render(<ReadingRoomPanel bookId="book-1" />);
+
+    // Join first
+    await user.click(screen.getByTestId('join-room-button'));
+    await waitFor(() => {
+      expect(screen.getByTestId('leave-room-button')).toBeInTheDocument();
+    });
+
+    // Leave
+    await user.click(screen.getByTestId('leave-room-button'));
+    await waitFor(() => {
+      // Should transition back to preview with Join Room button
+      expect(screen.getByTestId('join-room-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('leave-room-button')).toBeNull();
+      // Should show "Be the first to return!" since we were the last person
+      expect(screen.getByTestId('return-message')).toHaveTextContent('Be the first to return!');
+    });
+  });
+
+  // --- Idle timeout (Story 5.4) ---
+
+  it('enables idle timeout when joined', async () => {
+    const user = userEvent.setup();
+    render(<ReadingRoomPanel bookId="book-1" />);
+
+    // Not joined - idle should be disabled
+    expect(capturedIdleEnabled).toBe(false);
+
+    await user.click(screen.getByTestId('join-room-button'));
+    await waitFor(() => {
+      expect(capturedIdleEnabled).toBe(true);
+    });
+  });
+
+  it('idle timeout triggers leave and shows info toast', async () => {
+    const user = userEvent.setup();
+    render(<ReadingRoomPanel bookId="book-1" />);
+
+    await user.click(screen.getByTestId('join-room-button'));
+    await waitFor(() => {
+      expect(screen.getByTestId('leave-room-button')).toBeInTheDocument();
+    });
+
+    // Simulate idle timeout callback
+    expect(capturedIdleCallback).not.toBeNull();
+    await act(async () => {
+      await capturedIdleCallback!();
+    });
+
+    expect(mockLeaveRoom).toHaveBeenCalledWith('book-1');
+    expect(mockToast.info).toHaveBeenCalledWith(
+      "You've been idle for 30 minutes and left the reading room."
+    );
+  });
+
+  it('idle timeout transitions panel back to preview state', async () => {
+    const user = userEvent.setup();
+    render(<ReadingRoomPanel bookId="book-1" />);
+
+    await user.click(screen.getByTestId('join-room-button'));
+    await waitFor(() => {
+      expect(screen.getByTestId('leave-room-button')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      await capturedIdleCallback!();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('join-room-button')).toBeInTheDocument();
+      expect(screen.getByTestId('return-message')).toHaveTextContent('Be the first to return!');
+    });
+  });
+
+  it('does not show return message on initial render', () => {
+    render(<ReadingRoomPanel bookId="book-1" />);
+    expect(screen.queryByTestId('return-message')).toBeNull();
   });
 });

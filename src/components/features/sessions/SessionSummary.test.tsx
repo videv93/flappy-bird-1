@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { SessionSummary } from './SessionSummary';
 import { useTimerStore } from '@/stores/useTimerStore';
 import { useOfflineStore } from '@/stores/useOfflineStore';
+import { usePresenceStore } from '@/stores/usePresenceStore';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -25,6 +26,12 @@ vi.mock('@/lib/idb-storage', () => ({
 const mockSaveReadingSession = vi.fn();
 vi.mock('@/actions/sessions', () => ({
   saveReadingSession: (...args: unknown[]) => mockSaveReadingSession(...args),
+}));
+
+// Mock presence server action
+const mockLeaveRoom = vi.fn();
+vi.mock('@/actions/presence', () => ({
+  leaveRoom: (...args: unknown[]) => mockLeaveRoom(...args),
 }));
 
 // Mock sonner
@@ -87,7 +94,14 @@ describe('SessionSummary', () => {
       pendingSessions: [],
       _hasHydrated: true,
     });
+    usePresenceStore.setState({
+      currentChannel: null,
+      isConnected: false,
+      connectionMode: 'disconnected',
+      members: new Map(),
+    });
     mockSaveReadingSession.mockResolvedValue({ success: true, data: { id: 'rs-1' } });
+    mockLeaveRoom.mockResolvedValue({ success: true, data: { leftAt: new Date() } });
     // Ensure navigator.onLine is true
     Object.defineProperty(navigator, 'onLine', { value: true, writable: true, configurable: true });
   });
@@ -280,5 +294,100 @@ describe('SessionSummary', () => {
     expect(screen.getByRole('region', { name: /reading session summary/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/save reading session/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/discard reading session/i)).toBeInTheDocument();
+  });
+
+  // Presence leave tests (Story 5.4)
+  it('calls leaveRoom on save when user is in a reading room', async () => {
+    usePresenceStore.setState({ currentChannel: 'presence-room-book-1' });
+    const user = userEvent.setup();
+    render(<SessionSummary {...defaultProps} />);
+
+    await user.click(screen.getByTestId('save-session-button'));
+
+    expect(mockLeaveRoom).toHaveBeenCalledWith('book-1');
+    expect(mockToast.success).toHaveBeenCalledWith("Session saved! You've left the reading room.");
+  });
+
+  it('does not call leaveRoom on save when user is NOT in a reading room', async () => {
+    usePresenceStore.setState({ currentChannel: null });
+    const user = userEvent.setup();
+    render(<SessionSummary {...defaultProps} />);
+
+    await user.click(screen.getByTestId('save-session-button'));
+
+    expect(mockLeaveRoom).not.toHaveBeenCalled();
+  });
+
+  it('calls leaveRoom on discard when user is in a reading room', async () => {
+    usePresenceStore.setState({ currentChannel: 'presence-room-book-1' });
+    const user = userEvent.setup();
+    render(<SessionSummary {...defaultProps} />);
+
+    await user.click(screen.getByTestId('discard-session-button'));
+    await user.click(screen.getByTestId('discard-confirm'));
+
+    expect(mockLeaveRoom).toHaveBeenCalledWith('book-1');
+  });
+
+  it('does not call leaveRoom on discard when user is NOT in a reading room', async () => {
+    usePresenceStore.setState({ currentChannel: null });
+    const user = userEvent.setup();
+    render(<SessionSummary {...defaultProps} />);
+
+    await user.click(screen.getByTestId('discard-session-button'));
+    await user.click(screen.getByTestId('discard-confirm'));
+
+    expect(mockLeaveRoom).not.toHaveBeenCalled();
+  });
+
+  it('shows leave room toast on discard', async () => {
+    usePresenceStore.setState({ currentChannel: 'presence-room-book-1' });
+    const user = userEvent.setup();
+    render(<SessionSummary {...defaultProps} />);
+
+    await user.click(screen.getByTestId('discard-session-button'));
+    await user.click(screen.getByTestId('discard-confirm'));
+
+    expect(mockToast.success).toHaveBeenCalledWith("Session discarded. You've left the reading room.");
+  });
+
+  it('shows plain toast on discard when not in a reading room', async () => {
+    usePresenceStore.setState({ currentChannel: null });
+    const user = userEvent.setup();
+    const onComplete = vi.fn();
+    render(<SessionSummary {...defaultProps} onComplete={onComplete} />);
+
+    await user.click(screen.getByTestId('discard-session-button'));
+    await user.click(screen.getByTestId('discard-confirm'));
+
+    expect(mockToast.success).toHaveBeenCalledWith('Session discarded.');
+    expect(onComplete).toHaveBeenCalled();
+  });
+
+  it('completes save flow even when leaveRoom throws', async () => {
+    usePresenceStore.setState({ currentChannel: 'presence-room-book-1' });
+    mockLeaveRoom.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    const onComplete = vi.fn();
+    render(<SessionSummary {...defaultProps} onComplete={onComplete} />);
+
+    await user.click(screen.getByTestId('save-session-button'));
+
+    expect(mockToast.success).toHaveBeenCalledWith('Reading session saved!');
+    expect(onComplete).toHaveBeenCalled();
+  });
+
+  it('completes discard flow even when leaveRoom throws', async () => {
+    usePresenceStore.setState({ currentChannel: 'presence-room-book-1' });
+    mockLeaveRoom.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    const onComplete = vi.fn();
+    render(<SessionSummary {...defaultProps} onComplete={onComplete} />);
+
+    await user.click(screen.getByTestId('discard-session-button'));
+    await user.click(screen.getByTestId('discard-confirm'));
+
+    expect(mockToast.success).toHaveBeenCalledWith('Session discarded.');
+    expect(onComplete).toHaveBeenCalled();
   });
 });

@@ -17,7 +17,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useTimerStore } from '@/stores/useTimerStore';
 import { useOfflineStore } from '@/stores/useOfflineStore';
+import { usePresenceStore } from '@/stores/usePresenceStore';
 import { saveReadingSession } from '@/actions/sessions';
+import { leaveRoom } from '@/actions/presence';
 import { formatTime } from './types';
 
 export interface SessionSummaryProps {
@@ -53,6 +55,17 @@ export function SessionSummary({
     month: 'long',
     day: 'numeric',
   });
+
+  const tryLeaveRoom = async (): Promise<boolean> => {
+    const channel = usePresenceStore.getState().currentChannel;
+    if (!channel) return false;
+    try {
+      await leaveRoom(bookId);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   // Sessions under 1 minute can't be saved
   if (duration < 60) {
@@ -104,7 +117,9 @@ export function SessionSummary({
     setIsSaving(false);
 
     if (result.success) {
-      toast.success('Reading session saved!');
+      // Leave reading room if currently in one
+      const didLeave = await tryLeaveRoom();
+      toast.success(didLeave ? "Session saved! You've left the reading room." : 'Reading session saved!');
 
       // Handle streak updates
       const streakUpdate = result.data.streakUpdate;
@@ -132,7 +147,9 @@ export function SessionSummary({
     }
   };
 
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
+    const didLeave = await tryLeaveRoom();
+    toast.success(didLeave ? "Session discarded. You've left the reading room." : 'Session discarded.');
     reset();
     onComplete();
     setShowDiscardDialog(false);
