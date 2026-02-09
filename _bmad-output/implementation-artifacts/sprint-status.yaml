@@ -95,7 +95,7 @@ development_status:
   epic-6: in-progress
   6-1-admin-role-access-control: review
   6-2-moderation-queue: review
-  6-3-content-removal: backlog
+  6-3-content-removal: done
   6-4-user-warnings-suspension: backlog
   6-5-author-verification-review: backlog
   6-6-platform-health-metrics: backlog

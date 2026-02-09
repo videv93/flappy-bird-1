@@ -8,6 +8,14 @@ vi.mock('@/actions/admin/reviewModerationItem', () => ({
   reviewModerationItem: vi.fn().mockResolvedValue({ success: true, data: {} }),
 }));
 
+vi.mock('@/actions/admin/restoreContent', () => ({
+  restoreContent: vi.fn().mockResolvedValue({ success: true, data: {} }),
+}));
+
+vi.mock('@/actions/admin/removeContent', () => ({
+  removeContent: vi.fn().mockResolvedValue({ success: true, data: {} }),
+}));
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -19,8 +27,10 @@ const mockItem: ModerationQueueItem = {
   reason: 'Inappropriate content in their bio section',
   status: 'PENDING' as const,
   createdAt: new Date('2025-01-15T00:00:00.000Z'),
+  reviewedAt: null,
   reporter: { id: 'user-3', name: 'Alice Reporter', image: null },
   reportedUser: { id: 'user-2', name: 'Bob Reported', image: null },
+  contentRemoval: null,
 };
 
 describe('ModerationItemCard', () => {
@@ -78,5 +88,52 @@ describe('ModerationItemCard', () => {
       action: 'dismiss',
       adminNotes: undefined,
     });
+  });
+
+  it('opens RemoveContentDialog when Remove is clicked', async () => {
+    const user = userEvent.setup();
+    render(<ModerationItemCard item={mockItem} />);
+
+    const toggle = screen.getByRole('button', { expanded: false });
+    await user.click(toggle);
+
+    const removeBtn = screen.getByText('Remove');
+    await user.click(removeBtn);
+
+    // The dialog should now be open
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByText('Violation Type')).toBeInTheDocument();
+  });
+
+  it('shows Restore button for recently removed items', async () => {
+    const user = userEvent.setup();
+    const removedItem: ModerationQueueItem = {
+      ...mockItem,
+      status: 'REMOVED' as const,
+      reviewedAt: new Date(), // Just now
+      contentRemoval: { id: 'removal-1', removedAt: new Date() },
+    };
+    render(<ModerationItemCard item={removedItem} />);
+
+    const toggle = screen.getByRole('button');
+    await user.click(toggle);
+
+    expect(screen.getByText('Restore Content')).toBeInTheDocument();
+  });
+
+  it('does not show Restore button for items removed over 24h ago', async () => {
+    const user = userEvent.setup();
+    const oldRemovedItem: ModerationQueueItem = {
+      ...mockItem,
+      status: 'REMOVED' as const,
+      reviewedAt: new Date(Date.now() - 25 * 60 * 60 * 1000), // 25 hours ago
+      contentRemoval: { id: 'removal-1', removedAt: new Date(Date.now() - 25 * 60 * 60 * 1000) },
+    };
+    render(<ModerationItemCard item={oldRemovedItem} />);
+
+    const toggle = screen.getByRole('button');
+    await user.click(toggle);
+
+    expect(screen.queryByText('Restore Content')).not.toBeInTheDocument();
   });
 });

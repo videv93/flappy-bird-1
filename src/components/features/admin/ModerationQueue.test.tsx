@@ -15,6 +15,14 @@ vi.mock('@/actions/admin/reviewModerationItem', () => ({
   reviewModerationItem: vi.fn().mockResolvedValue({ success: true, data: {} }),
 }));
 
+vi.mock('@/actions/admin/restoreContent', () => ({
+  restoreContent: vi.fn().mockResolvedValue({ success: true, data: {} }),
+}));
+
+vi.mock('@/actions/admin/removeContent', () => ({
+  removeContent: vi.fn().mockResolvedValue({ success: true, data: {} }),
+}));
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -29,6 +37,8 @@ const mockItems: ModerationQueueItem[] = [
     createdAt: new Date('2025-01-15T00:00:00.000Z'),
     reporter: { id: 'user-3', name: 'Alice', image: null },
     reportedUser: { id: 'user-2', name: 'Bob', image: null },
+    reviewedAt: null,
+    contentRemoval: null,
   },
   {
     id: 'mod-2',
@@ -39,6 +49,8 @@ const mockItems: ModerationQueueItem[] = [
     createdAt: new Date('2025-01-16T00:00:00.000Z'),
     reporter: { id: 'user-4', name: 'Charlie', image: null },
     reportedUser: { id: 'user-5', name: 'Dave', image: null },
+    reviewedAt: null,
+    contentRemoval: null,
   },
 ];
 

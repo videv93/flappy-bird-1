@@ -14,8 +14,10 @@ export interface ModerationQueueItem {
   reason: string;
   status: ModerationStatus;
   createdAt: Date;
+  reviewedAt: Date | null;
   reporter: { id: string; name: string | null; image: string | null };
   reportedUser: { id: string; name: string | null; image: string | null };
+  contentRemoval: { id: string; removedAt: Date } | null;
 }
 
 export interface ModerationQueueResult {
@@ -72,6 +74,7 @@ export async function getModerationQueue(
         include: {
           reporter: { select: { id: true, name: true, image: true } },
           reportedUser: { select: { id: true, name: true, image: true } },
+          contentRemoval: { select: { id: true, removedAt: true } },
         },
       }),
       prisma.moderationItem.count({ where }),

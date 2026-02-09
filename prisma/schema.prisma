@@ -47,6 +47,15 @@ enum ContentType {
   READING_ROOM_DESCRIPTION
 }
 
+// Violation type for ContentRemoval
+enum ViolationType {
+  SPAM
+  HARASSMENT
+  SPOILERS
+  INAPPROPRIATE
+  OTHER
+}
+
 // Reading status enum for UserBook
 enum ReadingStatus {
   CURRENTLY_READING
@@ -68,6 +77,7 @@ model User {
   dailyGoalMinutes    Int?      @map("daily_goal_minutes")
   role                UserRole  @default(USER)
   lastActivityViewedAt DateTime? @map("last_activity_viewed_at")
+  bioRemovedAt        DateTime? @map("bio_removed_at")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
@@ -88,6 +98,8 @@ model User {
   reportsSubmitted   ModerationItem[]   @relation("reports_submitted")
   reportsReceived    ModerationItem[]   @relation("reports_received")
   moderationReviews  ModerationItem[]   @relation("moderation_reviews")
+  removalsPerformed  ContentRemoval[]   @relation("removals_performed")
+  restoresPerformed  ContentRemoval[]   @relation("restores_performed")
 
   @@map("users")
 }
@@ -327,9 +339,10 @@ model ModerationItem {
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
-  reporter     User  @relation("reports_submitted", fields: [reporterId], references: [id], onDelete: Cascade)
-  reportedUser User  @relation("reports_received", fields: [reportedUserId], references: [id], onDelete: Cascade)
-  reviewer     User? @relation("moderation_reviews", fields: [reviewedById], references: [id])
+  reporter       User             @relation("reports_submitted", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser   User             @relation("reports_received", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reviewer       User?            @relation("moderation_reviews", fields: [reviewedById], references: [id])
+  contentRemoval ContentRemoval?
 
   @@unique([reporterId, contentType, contentId])
   @@index([status])
@@ -352,4 +365,27 @@ model AdminAction {
   @@index([adminId])
   @@index([createdAt])
   @@map("admin_actions")
+}
+
+model ContentRemoval {
+  id               String         @id @default(cuid())
+  moderationItemId String         @unique @map("moderation_item_id")
+  violationType    ViolationType  @map("violation_type")
+  adminNotes       String?        @map("admin_notes")
+  removedById      String         @map("removed_by_id")
+  removedAt        DateTime       @default(now()) @map("removed_at")
+  restoredAt       DateTime?      @map("restored_at")
+  restoredById     String?        @map("restored_by_id")
+  originalContent  String         @map("original_content")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  moderationItem ModerationItem @relation(fields: [moderationItemId], references: [id], onDelete: Cascade)
+  removedBy      User           @relation("removals_performed", fields: [removedById], references: [id])
+  restoredBy     User?          @relation("restores_performed", fields: [restoredById], references: [id])
+
+  @@index([moderationItemId])
+  @@index([removedById])
+  @@index([removedAt])
+  @@map("content_removals")
 }

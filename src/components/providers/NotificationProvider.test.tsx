@@ -174,6 +174,83 @@ describe('NotificationProvider', () => {
     consoleSpy.mockRestore();
   });
 
+  it('binds moderation:content-removed event handler', async () => {
+    render(
+      <NotificationProvider>
+        <div>Test</div>
+      </NotificationProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockBind).toHaveBeenCalledWith('moderation:content-removed', expect.any(Function));
+    });
+  });
+
+  it('binds moderation:content-restored event handler', async () => {
+    render(
+      <NotificationProvider>
+        <div>Test</div>
+      </NotificationProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockBind).toHaveBeenCalledWith('moderation:content-restored', expect.any(Function));
+    });
+  });
+
+  it('shows toast with correct message for content removal', async () => {
+    const { toast } = await import('sonner');
+    const mockToast = toast as unknown as ReturnType<typeof vi.fn>;
+
+    render(
+      <NotificationProvider>
+        <div>Test</div>
+      </NotificationProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockBind).toHaveBeenCalledWith('moderation:content-removed', expect.any(Function));
+    });
+
+    // Find the handler and call it
+    const contentRemovedCall = mockBind.mock.calls.find(
+      (call: unknown[]) => call[0] === 'moderation:content-removed'
+    )!;
+    const handler = contentRemovedCall[1];
+    handler({ contentType: 'PROFILE_BIO', violationType: 'SPAM' });
+
+    expect(mockToast).toHaveBeenCalledWith(
+      'Your bio was removed for violating our spam policy.',
+      { duration: 6000 }
+    );
+  });
+
+  it('shows toast for content restoration', async () => {
+    const { toast } = await import('sonner');
+    const mockToast = toast as unknown as ReturnType<typeof vi.fn>;
+
+    render(
+      <NotificationProvider>
+        <div>Test</div>
+      </NotificationProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockBind).toHaveBeenCalledWith('moderation:content-restored', expect.any(Function));
+    });
+
+    const contentRestoredCall = mockBind.mock.calls.find(
+      (call: unknown[]) => call[0] === 'moderation:content-restored'
+    )!;
+    const handler = contentRestoredCall[1];
+    handler({ contentType: 'PROFILE_BIO' });
+
+    expect(mockToast).toHaveBeenCalledWith(
+      'Your content has been restored.',
+      { duration: 6000 }
+    );
+  });
+
   it('handles failed unread count fetch gracefully', async () => {
     mockGetUnreadKudosCount.mockResolvedValue({
       success: false,

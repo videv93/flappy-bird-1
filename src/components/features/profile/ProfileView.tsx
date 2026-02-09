@@ -183,12 +183,19 @@ function ProfileReadOnlyView({ user, sessionStats, streakData }: { user: User; s
       </div>
 
       {/* Bio */}
-      {user.bio && (
+      {user.bioRemovedAt ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-muted-foreground">About</h3>
+          <p className="text-sm italic text-muted-foreground">
+            [Content removed by moderator]
+          </p>
+        </div>
+      ) : user.bio ? (
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">About</h3>
           <p className="text-sm">{user.bio}</p>
         </div>
-      )}
+      ) : null}
 
       {/* Favorite Genres */}
       <div className="space-y-2">

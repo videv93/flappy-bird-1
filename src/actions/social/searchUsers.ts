@@ -18,6 +18,7 @@ export interface UserSearchResult {
   id: string;
   name: string | null;
   bio: string | null;
+  bioRemovedAt: Date | null;
   avatarUrl: string | null;
   image: string | null;
   isFollowing: boolean;
@@ -49,6 +50,7 @@ export async function searchUsers(
           id: true,
           name: true,
           bio: true,
+          bioRemovedAt: true,
           avatarUrl: true,
           image: true,
           _count: {
@@ -80,6 +82,7 @@ export async function searchUsers(
       id: user.id,
       name: user.name,
       bio: user.bio,
+      bioRemovedAt: user.bioRemovedAt,
       avatarUrl: user.avatarUrl,
       image: user.image,
       isFollowing: followingSet.has(user.id),

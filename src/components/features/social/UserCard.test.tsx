@@ -22,6 +22,7 @@ describe('UserCard', () => {
     id: 'user-2',
     name: 'Jane Doe',
     bio: 'Avid reader and book lover',
+    bioRemovedAt: null,
     avatarUrl: null,
     image: null,
     isFollowing: false,
@@ -67,5 +68,15 @@ describe('UserCard', () => {
     render(<UserCard user={defaultUser} />);
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', '/user/user-2');
+  });
+
+  it('shows removed content placeholder when bio has been removed', () => {
+    const removedBioUser = {
+      ...defaultUser,
+      bioRemovedAt: new Date('2025-01-15'),
+    };
+    render(<UserCard user={removedBioUser} />);
+    expect(screen.getByText('[Content removed by moderator]')).toBeInTheDocument();
+    expect(screen.queryByText('Avid reader and book lover')).not.toBeInTheDocument();
   });
 });

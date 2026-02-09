@@ -12,6 +12,7 @@ interface UserCardProps {
     id: string;
     name: string | null;
     bio: string | null;
+    bioRemovedAt: Date | null;
     avatarUrl: string | null;
     image: string | null;
     isFollowing: boolean;
@@ -36,9 +37,13 @@ export function UserCard({ user }: UserCardProps) {
 
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-medium">{displayName}</h3>
-          {user.bio && (
+          {user.bioRemovedAt ? (
+            <p className="truncate text-xs italic text-muted-foreground">
+              [Content removed by moderator]
+            </p>
+          ) : user.bio ? (
             <p className="truncate text-xs text-muted-foreground">{user.bio}</p>
-          )}
+          ) : null}
           <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
             <Users className="h-3 w-3" />
             <span>

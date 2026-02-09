@@ -71,6 +71,7 @@ describe('ProfileView', () => {
     name: 'John Doe',
     image: null,
     bio: 'I love reading books',
+    bioRemovedAt: null,
     avatarUrl: null,
     applePrivateRelay: false,
     favoriteGenres: ['Fiction', 'Mystery'],
@@ -238,5 +239,13 @@ describe('ProfileView', () => {
     render(<ProfileView user={superAdminUser} />);
 
     expect(screen.getByText('Admin')).toBeInTheDocument();
+  });
+
+  it('shows removed content placeholder when bio has been removed by moderator', () => {
+    const removedBioUser = { ...mockUser, bioRemovedAt: new Date('2025-01-15') };
+    render(<ProfileView user={removedBioUser} />);
+
+    expect(screen.getByText('[Content removed by moderator]')).toBeInTheDocument();
+    expect(screen.queryByText('I love reading books')).not.toBeInTheDocument();
   });
 });

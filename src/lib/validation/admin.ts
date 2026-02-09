@@ -39,3 +39,22 @@ export const reviewModerationItemSchema = z.object({
 });
 
 export type ReviewModerationItemInput = z.infer<typeof reviewModerationItemSchema>;
+
+// Content removal schemas
+
+export const violationTypeEnum = z.enum(['SPAM', 'HARASSMENT', 'SPOILERS', 'INAPPROPRIATE', 'OTHER']);
+
+export const removeContentSchema = z.object({
+  moderationItemId: z.string().min(1, 'Moderation item ID is required'),
+  violationType: violationTypeEnum,
+  adminNotes: z.string().max(1000).optional(),
+});
+
+export type RemoveContentInput = z.infer<typeof removeContentSchema>;
+
+export const restoreContentSchema = z.object({
+  contentRemovalId: z.string().min(1, 'Content removal ID is required'),
+  reason: z.string().max(1000).optional(),
+});
+
+export type RestoreContentInput = z.infer<typeof restoreContentSchema>;

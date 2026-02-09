@@ -59,12 +59,16 @@ export default async function UserProfilePage({
 
         <div className="text-center">
           <h1 className="text-xl font-semibold">{displayName}</h1>
-          {user.bio && (
+          {user.bioRemovedAt ? (
+            <p className="mt-1 text-sm italic text-muted-foreground">
+              [Content removed by moderator]
+            </p>
+          ) : user.bio ? (
             <div className="mt-1 flex items-center justify-center gap-1">
               <p className="text-sm text-muted-foreground">{user.bio}</p>
               <FlagContentButton contentType="PROFILE_BIO" contentId={user.id} />
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Stats Row */}

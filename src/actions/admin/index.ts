@@ -7,3 +7,7 @@ export type { ModerationQueueItem, ModerationQueueResult } from './getModeration
 export { getModerationItemDetail } from './getModerationItemDetail';
 export type { ModerationItemDetail } from './getModerationItemDetail';
 export { reviewModerationItem } from './reviewModerationItem';
+export { removeContent } from './removeContent';
+export { restoreContent } from './restoreContent';
+export { getUserRemovalHistory } from './getUserRemovalHistory';
+export type { RemovalHistoryItem, UserRemovalHistoryResult } from './getUserRemovalHistory';

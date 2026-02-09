@@ -51,6 +51,7 @@ export interface UserProfileData {
     name: string | null;
     image: string | null;
     bio: string | null;
+    bioRemovedAt: Date | null;
     avatarUrl: string | null;
     showReadingActivity: boolean;
   };
@@ -85,6 +86,7 @@ export async function getUserProfile(
             name: true,
             image: true,
             bio: true,
+            bioRemovedAt: true,
             avatarUrl: true,
             showReadingActivity: true,
           },
@@ -159,6 +161,7 @@ export async function getUserProfile(
           name: user.name,
           image: user.image,
           bio: user.bio,
+          bioRemovedAt: user.bioRemovedAt,
           avatarUrl: user.avatarUrl,
           showReadingActivity: user.showReadingActivity,
         },

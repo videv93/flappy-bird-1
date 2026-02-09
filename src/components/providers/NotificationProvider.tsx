@@ -71,6 +71,30 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           );
         }
       );
+
+      channel.bind(
+        'moderation:content-removed',
+        (data: { contentType: string; violationType: string }) => {
+          const contentLabel =
+            data.contentType === 'PROFILE_BIO'
+              ? 'bio'
+              : data.contentType === 'READING_ROOM_DESCRIPTION'
+                ? 'room description'
+                : 'content';
+          const violationLabel = data.violationType.toLowerCase().replace('_', ' ');
+          toast(
+            `Your ${contentLabel} was removed for violating our ${violationLabel} policy.`,
+            { duration: 6000 }
+          );
+        }
+      );
+
+      channel.bind(
+        'moderation:content-restored',
+        () => {
+          toast('Your content has been restored.', { duration: 6000 });
+        }
+      );
     } catch (error) {
       console.error('Pusher subscription error:', error);
     }
@@ -82,6 +106,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           channelRef.current?.unbind('kudos:received');
           channelRef.current?.unbind('author:claim-approved');
           channelRef.current?.unbind('author:claim-rejected');
+          channelRef.current?.unbind('moderation:content-removed');
+          channelRef.current?.unbind('moderation:content-restored');
           pusher.unsubscribe(`private-user-${userId}`);
         } catch (error) {
           console.error('Pusher cleanup error:', error);
