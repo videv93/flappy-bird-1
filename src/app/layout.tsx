@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { NotificationProvider } from "@/components/providers/NotificationProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
           </NotificationProvider>
           <Toaster position="top-right" />
         </AuthProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
