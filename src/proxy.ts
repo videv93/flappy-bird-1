@@ -1,21 +1,20 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
-const publicRoutes = ['/', '/login', '/api/auth'];
 const protectedRoutes = ['/home', '/library', '/profile', '/activity', '/search', '/user', '/admin'];
 
 export function proxy(request: NextRequest) {
+  const sessionCookie = getSessionCookie(request);
   const { pathname } = request.nextUrl;
 
-  // Check if public route
-  if (publicRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
-    return NextResponse.next();
+  if (sessionCookie && pathname === '/login') {
+    return NextResponse.redirect(new URL('/home', request.url));
   }
 
-  // Check session (Better Auth stores in cookie)
-  const sessionToken = request.cookies.get('better-auth.session_token');
-
-  if (!sessionToken && protectedRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
+  if (
+    !sessionCookie &&
+    protectedRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'))
+  ) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
@@ -25,5 +24,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
 };
