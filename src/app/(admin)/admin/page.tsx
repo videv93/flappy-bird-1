@@ -1,4 +1,4 @@
-import { BookCheck, Shield, Users, BarChart3 } from 'lucide-react';
+import { BookCheck, Shield, Users, BarChart3, Search } from 'lucide-react';
 import { getDashboardStats } from '@/actions/admin/getDashboardStats';
 import { DashboardStatCard } from '@/components/features/admin/DashboardStatCard';
 import { AdminActivityLog } from '@/components/features/admin/AdminActivityLog';
@@ -41,8 +41,8 @@ export default async function AdminDashboardPage() {
         <DashboardStatCard
           label="Total Users"
           count={totalUsersCount}
-          icon={BarChart3}
-          href="/admin/metrics"
+          icon={Search}
+          href="/admin/users"
         />
       </div>
 

@@ -99,12 +99,12 @@ development_status:
   6-4-user-warnings-suspension: done
   6-5-author-verification-review: done
   6-6-platform-health-metrics: review
-  6-7-user-session-lookup: backlog
+  6-7-user-session-lookup: review
   epic-6-retrospective: optional
 
   # Epic 7: Premium Schema & Book Limit Enforcement
   epic-7: in-progress
-  7-1-premium-data-model-status-utility: review
+  7-1-premium-data-model-status-utility: done
   7-2-book-limit-enforcement-free-users: backlog
   7-3-upgrade-prompt-premium-ui-hints: backlog
   epic-7-retrospective: optional

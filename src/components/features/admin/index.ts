@@ -6,3 +6,8 @@ export { ModerationItemCard } from './ModerationItemCard';
 export { ModerationEmptyState } from './ModerationEmptyState';
 export { RemoveContentDialog } from './RemoveContentDialog';
 export { UserRemovalHistory } from './UserRemovalHistory';
+export { UserSearchBar } from './UserSearchBar';
+export { UserSearchResults } from './UserSearchResults';
+export { UserAccountCard } from './UserAccountCard';
+export { UserActivitySection } from './UserActivitySection';
+export { UserSessionsList } from './UserSessionsList';

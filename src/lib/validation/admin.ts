@@ -95,3 +95,13 @@ export const acknowledgeWarningSchema = z.object({
 });
 
 export type AcknowledgeWarningInput = z.infer<typeof acknowledgeWarningSchema>;
+
+// User search schema (Story 6.7)
+
+export const userSearchSchema = z.object({
+  query: z.string().min(1, 'Search query is required').max(100, 'Search query must be at most 100 characters'),
+  limit: z.number().int().min(1).max(50).optional().default(20),
+  offset: z.number().int().min(0).optional().default(0),
+});
+
+export type UserSearchInput = z.infer<typeof userSearchSchema>;
