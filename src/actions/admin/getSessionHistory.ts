@@ -18,7 +18,7 @@ export interface SessionRecord {
   isActive: boolean;
 }
 
-export function parseUserAgent(ua: string | null): { browser: string; os: string } {
+export async function parseUserAgent(ua: string | null): Promise<{ browser: string; os: string }> {
   if (!ua) return { browser: 'Unknown', os: 'Unknown' };
 
   let browser = 'Unknown';
@@ -85,16 +85,18 @@ export async function getSessionHistory(
     });
 
     const now = new Date();
-    const records: SessionRecord[] = sessions.map((s) => ({
-      id: s.id,
-      maskedToken: s.token.substring(0, 8) + '...',
-      ipAddress: s.ipAddress,
-      userAgent: s.userAgent,
-      deviceInfo: parseUserAgent(s.userAgent),
-      createdAt: s.createdAt,
-      expiresAt: s.expiresAt,
-      isActive: s.expiresAt > now,
-    }));
+    const records: SessionRecord[] = await Promise.all(
+      sessions.map(async (s) => ({
+        id: s.id,
+        maskedToken: s.token.substring(0, 8) + '...',
+        ipAddress: s.ipAddress,
+        userAgent: s.userAgent,
+        deviceInfo: await parseUserAgent(s.userAgent),
+        createdAt: s.createdAt,
+        expiresAt: s.expiresAt,
+        isActive: s.expiresAt > now,
+      }))
+    );
 
     await logAdminAction({
       adminId: session.user.id,
