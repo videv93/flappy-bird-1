@@ -24,6 +24,7 @@ export interface DashboardStats {
   pendingClaimsCount: number;
   moderationCount: number;
   userWarningCount: number;
+  totalUsersCount: number;
   recentActions: AdminActionEntry[];
 }
 
@@ -44,10 +45,11 @@ export async function getDashboardStats(): Promise<ActionResult<DashboardStats>>
       return { success: false, error: 'Forbidden' };
     }
 
-    const [pendingClaimsCount, moderationCount, userWarningCount, recentActions] = await Promise.all([
+    const [pendingClaimsCount, moderationCount, userWarningCount, totalUsersCount, recentActions] = await Promise.all([
       prisma.authorClaim.count({ where: { status: 'PENDING' } }),
       prisma.moderationItem.count({ where: { status: 'PENDING' } }),
       prisma.userWarning.count({ where: { acknowledgedAt: null } }),
+      prisma.user.count(),
       prisma.adminAction.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
@@ -65,6 +67,7 @@ export async function getDashboardStats(): Promise<ActionResult<DashboardStats>>
         pendingClaimsCount,
         moderationCount,
         userWarningCount,
+        totalUsersCount,
         recentActions,
       },
     };

@@ -14,7 +14,7 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const { pendingClaimsCount, moderationCount, userWarningCount, recentActions } = result.data;
+  const { pendingClaimsCount, moderationCount, userWarningCount, totalUsersCount, recentActions } = result.data;
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6">
@@ -39,8 +39,8 @@ export default async function AdminDashboardPage() {
           icon={Users}
         />
         <DashboardStatCard
-          label="Metrics"
-          count={0}
+          label="Total Users"
+          count={totalUsersCount}
           icon={BarChart3}
           href="/admin/metrics"
         />

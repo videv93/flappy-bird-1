@@ -10,7 +10,7 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    user: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn(), count: vi.fn() },
     authorClaim: { count: vi.fn() },
     moderationItem: { count: vi.fn() },
     adminAction: { findMany: vi.fn() },
@@ -34,6 +34,7 @@ const mockClaimCount = (prisma as unknown as { authorClaim: { count: ReturnType<
 const mockModItemCount = (prisma as unknown as { moderationItem: { count: ReturnType<typeof vi.fn> } }).moderationItem.count;
 const mockActionFindMany = (prisma as unknown as { adminAction: { findMany: ReturnType<typeof vi.fn> } }).adminAction.findMany;
 const mockWarningCount = (prisma as unknown as { userWarning: { count: ReturnType<typeof vi.fn> } }).userWarning.count;
+const mockUserCount = (prisma as unknown as { user: { count: ReturnType<typeof vi.fn> } }).user.count;
 
 describe('getDashboardStats', () => {
   beforeEach(() => {
@@ -46,6 +47,7 @@ describe('getDashboardStats', () => {
     mockClaimCount.mockResolvedValue(3);
     mockModItemCount.mockResolvedValue(5);
     mockWarningCount.mockResolvedValue(0);
+    mockUserCount.mockResolvedValue(100);
     mockActionFindMany.mockResolvedValue([]);
 
     const result = await getDashboardStats();
@@ -56,6 +58,7 @@ describe('getDashboardStats', () => {
         pendingClaimsCount: 3,
         moderationCount: 5,
         userWarningCount: 0,
+        totalUsersCount: 100,
         recentActions: [],
       },
     });
@@ -65,6 +68,7 @@ describe('getDashboardStats', () => {
     mockClaimCount.mockResolvedValue(0);
     mockModItemCount.mockResolvedValue(0);
     mockWarningCount.mockResolvedValue(0);
+    mockUserCount.mockResolvedValue(0);
     mockActionFindMany.mockResolvedValue([]);
 
     await getDashboardStats();
