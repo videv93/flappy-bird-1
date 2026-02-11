@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useReducer } from 'react';
 import { RefreshCw } from 'lucide-react';
 
-import { getUserLibrary } from '@/actions/books';
+import { getUserLibrary, getBookLimitInfo } from '@/actions/books';
+import type { BookLimitInfo } from '@/actions/books';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ReadingStatus } from '@prisma/client';
@@ -12,6 +13,7 @@ import type { UserBookWithBook } from './types';
 import { LibrarySection } from './LibrarySection';
 import { LibraryBookCardSkeleton } from './LibraryBookCardSkeleton';
 import { LibraryEmptyState } from './LibraryEmptyState';
+import { BookLimitBadge } from './BookLimitBadge';
 
 type LibraryState = {
   books: UserBookWithBook[];
@@ -63,13 +65,22 @@ export function LibraryView() {
     loadingState: 'loading' as const,
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [bookLimitInfo, setBookLimitInfo] = useState<BookLimitInfo | null>(null);
 
   const fetchLibrary = useCallback(async () => {
-    const result = await getUserLibrary();
-    if (result.success) {
-      dispatch({ type: 'FETCH_SUCCESS', books: result.data.books, readerCounts: result.data.readerCounts });
+    const [libraryResult, limitResult] = await Promise.allSettled([
+      getUserLibrary(),
+      getBookLimitInfo(),
+    ]);
+
+    if (libraryResult.status === 'fulfilled' && libraryResult.value.success) {
+      dispatch({ type: 'FETCH_SUCCESS', books: libraryResult.value.data.books, readerCounts: libraryResult.value.data.readerCounts });
     } else {
       dispatch({ type: 'FETCH_ERROR' });
+    }
+
+    if (limitResult.status === 'fulfilled' && limitResult.value.success) {
+      setBookLimitInfo(limitResult.value.data);
     }
   }, []);
 
@@ -136,8 +147,15 @@ export function LibraryView() {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Refresh button */}
-      <div className="flex justify-end px-4 pt-2">
+      {/* Header with book limit badge and refresh */}
+      <div className="flex items-center justify-end gap-2 px-4 pt-2">
+        {bookLimitInfo && (
+          <BookLimitBadge
+            currentBookCount={bookLimitInfo.currentBookCount}
+            maxBooks={bookLimitInfo.maxBooks}
+            isPremium={bookLimitInfo.isPremium}
+          />
+        )}
         <Button
           variant="ghost"
           size="sm"

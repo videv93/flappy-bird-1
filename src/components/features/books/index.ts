@@ -25,6 +25,8 @@ export { LibrarySection } from './LibrarySection';
 export { LibraryBookCard } from './LibraryBookCard';
 export { LibraryBookCardSkeleton } from './LibraryBookCardSkeleton';
 export { LibraryEmptyState } from './LibraryEmptyState';
+export { BookLimitBadge } from './BookLimitBadge';
+export { UpgradePromptDialog } from './UpgradePromptDialog';
 
 // Types and constants
 export type {

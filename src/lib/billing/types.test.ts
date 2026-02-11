@@ -110,7 +110,7 @@ describe('billing types', () => {
     expect(checkout).toHaveProperty('id');
     expect(checkout).toHaveProperty('url');
 
-    const webhook = await mockProvider.verifyWebhook('body', 'sig');
+    const webhook = await mockProvider.verifyWebhook('body', { 'webhook-signature': 'sig' });
     expect(webhook).toHaveProperty('type');
 
     const status = await mockProvider.getPaymentStatus('co-1');

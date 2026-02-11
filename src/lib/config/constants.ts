@@ -4,6 +4,11 @@
 export const FREE_TIER_BOOK_LIMIT = 3;
 
 /**
+ * Premium one-time payment amount in cents ($9.99).
+ */
+export const PREMIUM_PRICE_AMOUNT = 999;
+
+/**
  * Maximum number of streak freezes a user can hold.
  */
 export const MAX_STREAK_FREEZES = 5;

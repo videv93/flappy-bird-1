@@ -35,7 +35,7 @@ export interface PaymentProvider {
   /**
    * Verify an incoming webhook signature and parse the event.
    */
-  verifyWebhook(body: string, signature: string): Promise<WebhookEvent>;
+  verifyWebhook(body: string, headers: Record<string, string>): Promise<WebhookEvent>;
 
   /**
    * Get the status/result of a payment by checkout ID.

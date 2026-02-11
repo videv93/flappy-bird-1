@@ -106,12 +106,12 @@ development_status:
   epic-7: in-progress
   7-1-premium-data-model-status-utility: done
   7-2-book-limit-enforcement-free-users: review
-  7-3-upgrade-prompt-premium-ui-hints: backlog
+  7-3-upgrade-prompt-premium-ui-hints: done
   epic-7-retrospective: optional
 
   # Epic 8: Polar Payment & Premium Unlock
-  epic-8: backlog
-  8-1-polar-client-setup-checkout-session: backlog
-  8-2-webhook-handler-payment-processing: backlog
+  epic-8: in-progress
+  8-1-polar-client-setup-checkout-session: done
+  8-2-webhook-handler-payment-processing: done
   8-3-premium-unlock-flow-post-payment: backlog
   epic-8-retrospective: optional

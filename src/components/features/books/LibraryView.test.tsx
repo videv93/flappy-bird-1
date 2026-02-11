@@ -30,11 +30,16 @@ vi.mock('next/link', () => ({
 
 vi.mock('@/actions/books', () => ({
   getUserLibrary: vi.fn(),
+  getBookLimitInfo: vi.fn().mockResolvedValue({
+    success: true,
+    data: { isPremium: false, currentBookCount: 1, maxBooks: 3 },
+  }),
 }));
 
-import { getUserLibrary } from '@/actions/books';
+import { getUserLibrary, getBookLimitInfo } from '@/actions/books';
 
 const mockGetUserLibrary = getUserLibrary as unknown as ReturnType<typeof vi.fn>;
+const mockGetBookLimitInfo = getBookLimitInfo as unknown as ReturnType<typeof vi.fn>;
 
 const mockBook = {
   id: 'book-1',
@@ -355,5 +360,64 @@ describe('LibraryView', () => {
     const cards = screen.getAllByTestId('library-book-card');
     expect(cards[0]).toHaveTextContent('Newer Book');
     expect(cards[1]).toHaveTextContent('Older Book');
+  });
+
+  describe('BookLimitBadge integration', () => {
+    it('renders book limit badge with correct count for free user', async () => {
+      mockGetUserLibrary.mockResolvedValue({
+        success: true,
+        data: { books: [mockReadingBook], readerCounts: {} },
+      });
+      mockGetBookLimitInfo.mockResolvedValue({
+        success: true,
+        data: { isPremium: false, currentBookCount: 2, maxBooks: 3 },
+      });
+
+      render(<LibraryView />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('book-limit-badge')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('book-limit-badge')).toHaveTextContent('2/3 books');
+    });
+
+    it('does not render badge for premium users', async () => {
+      mockGetUserLibrary.mockResolvedValue({
+        success: true,
+        data: { books: [mockReadingBook], readerCounts: {} },
+      });
+      mockGetBookLimitInfo.mockResolvedValue({
+        success: true,
+        data: { isPremium: true, currentBookCount: 5, maxBooks: 3 },
+      });
+
+      render(<LibraryView />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('library-tabs')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId('book-limit-badge')).not.toBeInTheDocument();
+    });
+
+    it('still loads library when getBookLimitInfo fails', async () => {
+      mockGetUserLibrary.mockResolvedValue({
+        success: true,
+        data: { books: [mockReadingBook], readerCounts: {} },
+      });
+      mockGetBookLimitInfo.mockResolvedValue({
+        success: false,
+        error: 'Failed',
+      });
+
+      render(<LibraryView />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Reading Book')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId('book-limit-badge')).not.toBeInTheDocument();
+    });
   });
 });

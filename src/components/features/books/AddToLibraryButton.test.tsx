@@ -16,6 +16,22 @@ vi.mock('@/actions/books', () => ({
   addToLibrary: vi.fn(),
 }));
 
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
 import { toast } from 'sonner';
 import { addToLibrary } from '@/actions/books';
 
@@ -164,6 +180,87 @@ describe('AddToLibraryButton', () => {
 
       await user.click(button);
       expect(onViewInLibrary).toHaveBeenCalled();
+    });
+  });
+
+  describe('book limit error handling', () => {
+    const bookLimitError = {
+      success: false as const,
+      error: "You've reached the free tier limit of 3 books.",
+      code: 'BOOK_LIMIT_REACHED' as const,
+      premiumStatus: 'FREE',
+      currentBookCount: 3,
+      maxBooks: 3,
+    };
+
+    it('shows upgrade dialog when BOOK_LIMIT_REACHED error returned', async () => {
+      const user = userEvent.setup();
+      mockAddToLibrary.mockResolvedValue(bookLimitError);
+
+      render(<AddToLibraryButton book={mockBook} />);
+
+      await user.click(screen.getByRole('button', { name: /add to library/i }));
+      await user.click(screen.getByRole('menuitem', { name: /currently reading/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText("You're a power reader!")).toBeInTheDocument();
+      });
+    });
+
+    it('does NOT call toast.error for book limit error', async () => {
+      const user = userEvent.setup();
+      mockAddToLibrary.mockResolvedValue(bookLimitError);
+
+      render(<AddToLibraryButton book={mockBook} />);
+
+      await user.click(screen.getByRole('button', { name: /add to library/i }));
+      await user.click(screen.getByRole('menuitem', { name: /currently reading/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText("You're a power reader!")).toBeInTheDocument();
+      });
+      expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    it('dismissing dialog returns to normal state', async () => {
+      const user = userEvent.setup();
+      mockAddToLibrary.mockResolvedValue(bookLimitError);
+
+      render(<AddToLibraryButton book={mockBook} />);
+
+      await user.click(screen.getByRole('button', { name: /add to library/i }));
+      await user.click(screen.getByRole('menuitem', { name: /currently reading/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText("You're a power reader!")).toBeInTheDocument();
+      });
+
+      // Click "Maybe Later" to dismiss
+      await user.click(screen.getByRole('button', { name: /maybe later/i }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("You're a power reader!")).not.toBeInTheDocument();
+      });
+
+      // Button should still be functional
+      expect(screen.getByRole('button', { name: /add to library/i })).toBeInTheDocument();
+    });
+
+    it('generic errors still show toast.error (regression)', async () => {
+      const user = userEvent.setup();
+      mockAddToLibrary.mockResolvedValue({ success: false, error: 'Server error' });
+
+      render(<AddToLibraryButton book={mockBook} />);
+
+      await user.click(screen.getByRole('button', { name: /add to library/i }));
+      await user.click(screen.getByRole('menuitem', { name: /currently reading/i }));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Server error');
+      });
+
+      // Upgrade dialog should NOT appear
+      expect(screen.queryByText("You're a power reader!")).not.toBeInTheDocument();
     });
   });
 
