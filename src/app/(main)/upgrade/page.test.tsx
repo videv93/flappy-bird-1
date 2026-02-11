@@ -16,6 +16,12 @@ vi.mock('sonner', () => ({
   },
 }));
 
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: vi.fn().mockReturnValue(null),
+  }),
+}));
+
 vi.mock('next/link', () => ({
   default: ({
     children,

@@ -113,5 +113,5 @@ development_status:
   epic-8: in-progress
   8-1-polar-client-setup-checkout-session: done
   8-2-webhook-handler-payment-processing: done
-  8-3-premium-unlock-flow-post-payment: backlog
+  8-3-premium-unlock-flow-post-payment: done
   epic-8-retrospective: optional

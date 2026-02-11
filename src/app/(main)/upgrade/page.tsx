@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, Loader2, BookOpen, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +16,17 @@ const formattedPrice = `$${(PREMIUM_PRICE_AMOUNT / 100).toFixed(2)}`;
 export default function UpgradePage() {
   const [isPending, startTransition] = useTransition();
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
+  const searchParams = useSearchParams();
+
+  const cancelled = searchParams.get('cancelled');
+
+  useEffect(() => {
+    if (cancelled === 'true') {
+      toast.error(
+        'Checkout not completed. You can try again whenever you\'re ready.',
+      );
+    }
+  }, [cancelled]);
 
   useEffect(() => {
     getBookLimitInfo()
