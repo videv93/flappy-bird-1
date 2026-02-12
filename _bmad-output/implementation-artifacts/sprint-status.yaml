@@ -115,3 +115,18 @@ development_status:
   8-2-webhook-handler-payment-processing: done
   8-3-premium-unlock-flow-post-payment: done
   epic-8-retrospective: optional
+
+  # Epic 9: Stream Integration & Book Discussions
+  epic-9: in-progress
+  9-1-stream-sdk-setup-user-token-generation: done
+  9-2-book-discussion-thread-display: backlog
+  9-3-create-discussion-posts-threaded-replies: backlog
+  9-4-discussion-sorting-discovery: backlog
+  epic-9-retrospective: optional
+
+  # Epic 10: Author Chat in Reading Rooms
+  epic-10: backlog
+  10-1-author-chat-panel-activation: backlog
+  10-2-premium-chat-access-free-user-upgrade-prompt: backlog
+  10-3-ephemeral-chat-lifecycle-cleanup: backlog
+  epic-10-retrospective: optional

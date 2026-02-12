@@ -8,3 +8,7 @@ export type {
   ReadingStatus,
 } from './database';
 export { ReadingStatusEnum } from './database';
+
+export type ActionResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { AppShell } from '@/components/layout';
 import { SuspensionGuard } from '@/components/features/admin/SuspensionGuard';
+import { StreamChatProvider } from '@/components/features/stream';
 
 // Page title mapping
 const PAGE_TITLES: Record<string, string> = {
@@ -44,7 +45,9 @@ export default function MainLayout({
 
   return (
     <SuspensionGuard>
-      <AppShell title={title}>{children}</AppShell>
+      <StreamChatProvider>
+        <AppShell title={title}>{children}</AppShell>
+      </StreamChatProvider>
     </SuspensionGuard>
   );
 }
