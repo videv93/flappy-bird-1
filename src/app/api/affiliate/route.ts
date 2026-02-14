@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
   const provider = searchParams.get('provider') as AffiliateProvider | null;
   const bookId = searchParams.get('bookId');
   const source = searchParams.get('source');
+  const variant = searchParams.get('variant');
 
   if (!isbn || !isValidIsbn(isbn)) {
     return NextResponse.json({ error: 'Valid ISBN required' }, { status: 400 });
@@ -36,12 +37,19 @@ export async function GET(request: NextRequest) {
     });
 
     if (session?.user && bookId) {
+      const countryCode =
+        request.headers.get('x-vercel-ip-country') ||
+        request.headers.get('cf-ipcountry') ||
+        null;
+
       await prisma.affiliateClick.create({
         data: {
           userId: session.user.id,
           bookId,
           provider,
           ...(source && { source }),
+          ...(variant && { variant }),
+          ...(countryCode && { countryCode }),
         },
       });
     }

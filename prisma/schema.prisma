@@ -545,9 +545,11 @@ model AffiliateClick {
   userId    String   @map("user_id")
   bookId    String   @map("book_id")
   provider  String
-  source    String?
-  converted Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
+  source      String?
+  variant     String?
+  countryCode String?  @map("country_code")
+  converted   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -555,6 +557,8 @@ model AffiliateClick {
   @@index([bookId])
   @@index([provider])
   @@index([createdAt])
+  @@index([variant])
+  @@index([countryCode])
   @@map("affiliate_clicks")
 }
 

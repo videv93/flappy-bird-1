@@ -8,6 +8,7 @@ import {
   Users,
   BookCheck,
   BarChart3,
+  DollarSign,
   ArrowLeft,
   type LucideIcon,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/claims', icon: BookCheck, label: 'Authors' },
   { href: '/admin/metrics', icon: BarChart3, label: 'Metrics' },
+  { href: '/admin/affiliate', icon: DollarSign, label: 'Affiliate' },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
