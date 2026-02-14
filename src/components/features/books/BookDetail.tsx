@@ -12,6 +12,11 @@ const BookPurchaseButton = lazy(() =>
 const PostReadingRecommendations = lazy(() =>
   import('./PostReadingRecommendations').then((m) => ({ default: m.PostReadingRecommendations }))
 );
+const StartBuddyReadButton = lazy(() =>
+  import('@/components/features/social/StartBuddyReadButton').then((m) => ({
+    default: m.StartBuddyReadButton,
+  }))
+);
 import { SessionList } from '@/components/features/sessions/SessionList';
 import { AuthorEngagementMetrics } from '@/components/features/authors/AuthorEngagementMetrics';
 import { BookDiscussion } from '@/components/features/discussions';
@@ -105,6 +110,14 @@ export function BookDetail({ data, initialSessions = [], initialCursor = null }:
               isbn={(book.isbn13 || book.isbn10)!}
               bookId={book.id}
             />
+          </Suspense>
+        </div>
+      )}
+
+      {isInLibrary && (
+        <div className="border-t border-border px-4 py-3">
+          <Suspense fallback={null}>
+            <StartBuddyReadButton bookId={book.id} />
           </Suspense>
         </div>
       )}

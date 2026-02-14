@@ -155,6 +155,29 @@ describe('GET /api/affiliate', () => {
     });
   });
 
+  it('includes buddy-read source in click tracking', async () => {
+    const { auth } = await import('@/lib/auth');
+    const { prisma } = await import('@/lib/prisma');
+
+    vi.mocked(auth.api.getSession).mockResolvedValueOnce({
+      user: { id: 'user-1' },
+      session: {},
+    } as never);
+
+    await GET(
+      makeRequest({ isbn: '1234567890', provider: 'amazon', bookId: 'book-1', source: 'buddy-read' })
+    );
+
+    expect(prisma.affiliateClick.create).toHaveBeenCalledWith({
+      data: {
+        userId: 'user-1',
+        bookId: 'book-1',
+        provider: 'amazon',
+        source: 'buddy-read',
+      },
+    });
+  });
+
   it('does not track click when user is unauthenticated', async () => {
     const { prisma } = await import('@/lib/prisma');
 

@@ -78,6 +78,20 @@ enum ViolationType {
   OTHER
 }
 
+// Buddy read status
+enum BuddyReadStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// Buddy read invitation status
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 // Reading status enum for UserBook
 enum ReadingStatus {
   CURRENTLY_READING
@@ -147,6 +161,9 @@ model User {
   suspensionsLifted  UserSuspension[]   @relation("suspensions_lifted")
   payments           Payment[]
   affiliateClicks    AffiliateClick[]
+  buddyReadsCreated        BuddyRead[]
+  buddyReadInvitesSent     BuddyReadInvitation[] @relation("invites_sent")
+  buddyReadInvitesReceived BuddyReadInvitation[] @relation("invites_received")
 
   @@map("users")
 }
@@ -213,6 +230,7 @@ model Book {
   roomPresences   RoomPresence[]
   authorClaims    AuthorClaim[]
   affiliateLinks  AffiliateLink[]
+  buddyReads      BuddyRead[]
 
   @@index([isbn10])
   @@index([isbn13])
@@ -538,4 +556,40 @@ model AffiliateClick {
   @@index([provider])
   @@index([createdAt])
   @@map("affiliate_clicks")
+}
+
+model BuddyRead {
+  id        String          @id @default(cuid())
+  creatorId String          @map("creator_id")
+  bookId    String          @map("book_id")
+  status    BuddyReadStatus @default(ACTIVE)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  creator     User                  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  book        Book                  @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  invitations BuddyReadInvitation[]
+
+  @@index([creatorId])
+  @@index([bookId])
+  @@map("buddy_reads")
+}
+
+model BuddyReadInvitation {
+  id          String           @id @default(cuid())
+  buddyReadId String           @map("buddy_read_id")
+  inviterId   String           @map("inviter_id")
+  inviteeId   String           @map("invitee_id")
+  status      InvitationStatus @default(PENDING)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  buddyRead BuddyRead @relation(fields: [buddyReadId], references: [id], onDelete: Cascade)
+  inviter   User      @relation("invites_sent", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee   User      @relation("invites_received", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@index([buddyReadId])
+  @@index([inviteeId])
+  @@index([inviterId])
+  @@map("buddy_read_invitations")
 }
