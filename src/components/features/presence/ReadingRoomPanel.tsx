@@ -50,14 +50,17 @@ export function ReadingRoomPanel({ bookId, className }: ReadingRoomPanelProps) {
       lastSeenAt: new Date(),
     });
     // Only show toast in realtime mode (AC #3: polling users discover naturally)
-    if (connectionModeRef.current !== 'polling') {
+    // Don't show the toast to the author themselves
+    if (connectionModeRef.current === 'realtime' && data.authorId !== userId) {
       setAuthorAnnouncement(`${data.authorName}, the author, has joined the reading room`);
+      // Clear announcement after 2s so screen readers don't re-announce on re-render
+      setTimeout(() => setAuthorAnnouncement(''), 2000);
       toast(`✨ ${data.authorName} just joined the reading room!`, {
         duration: 6000,
         className: 'border-l-4 border-l-[var(--author-shimmer,#eab308)]',
       });
     }
-  }, []);
+  }, [userId]);
 
   const handleAuthorLeave = useCallback((data: { authorId: string }) => {
     setAuthorPresence({

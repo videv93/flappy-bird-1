@@ -157,6 +157,24 @@ describe('joinRoom', () => {
     expect(mockPusherTrigger).not.toHaveBeenCalled();
   });
 
+  it('does NOT trigger room:author-joined on author reconnect (existing presence)', async () => {
+    const existingAuthorPresence = {
+      id: 'presence-1',
+      userId: 'user-1',
+      bookId: 'book-1',
+      joinedAt: new Date(),
+      lastActiveAt: new Date('2026-01-01'),
+      leftAt: null,
+      isAuthor: true,
+    };
+    mockFindFirst.mockResolvedValue(existingAuthorPresence);
+    mockUpdate.mockResolvedValue({ ...existingAuthorPresence, lastActiveAt: new Date() });
+
+    await joinRoom('book-1');
+
+    expect(mockPusherTrigger).not.toHaveBeenCalled();
+  });
+
   it('does not fail join when Pusher trigger fails (fire-and-forget)', async () => {
     mockFindFirst.mockResolvedValue(null);
     mockClaimFindFirst.mockResolvedValue({ id: 'claim-1' });

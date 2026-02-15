@@ -25,6 +25,7 @@ export async function joinRoom(bookId: string): Promise<ActionResult<RoomPresenc
     // Use transaction to prevent duplicate active presences under concurrent requests.
     // NOTE: The @@unique([userId, bookId, leftAt]) constraint does NOT prevent duplicates
     // when leftAt is NULL because PostgreSQL treats NULL != NULL in unique indexes.
+    let isNewJoin = false;
     const presence = await prisma.$transaction(async (tx) => {
       const existing = await tx.roomPresence.findFirst({
         where: {
@@ -35,6 +36,7 @@ export async function joinRoom(bookId: string): Promise<ActionResult<RoomPresenc
       });
 
       if (existing) {
+        // Reconnect: update heartbeat only, do NOT re-trigger author-joined event
         return tx.roomPresence.update({
           where: { id: existing.id },
           data: { lastActiveAt: new Date() },
@@ -50,6 +52,7 @@ export async function joinRoom(bookId: string): Promise<ActionResult<RoomPresenc
         },
       });
 
+      isNewJoin = true;
       return tx.roomPresence.create({
         data: {
           userId: session.user.id,
@@ -59,8 +62,8 @@ export async function joinRoom(bookId: string): Promise<ActionResult<RoomPresenc
       });
     });
 
-    // Notify room occupants when a verified author joins
-    if (presence.isAuthor) {
+    // Notify room occupants when a verified author joins (not on reconnect)
+    if (isNewJoin && presence.isAuthor) {
       try {
         const pusher = getPusher();
         await pusher?.trigger(

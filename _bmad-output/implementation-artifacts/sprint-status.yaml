@@ -88,7 +88,7 @@ development_status:
   5-4-leave-reading-room: done
   5-5-author-claim-verification: done
   5-6-author-presence-display: done
-  5-7-author-join-notification: review
+  5-7-author-join-notification: done
   epic-5-retrospective: optional
 
   # Epic 6: Administration & Platform Health

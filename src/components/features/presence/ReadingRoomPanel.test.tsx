@@ -880,6 +880,59 @@ describe('ReadingRoomPanel', () => {
     });
   });
 
+  it('does NOT show toast when the author themselves joins (self-notification suppressed)', async () => {
+    const user = userEvent.setup();
+    mockUseSession.mockReturnValue({
+      data: { user: { id: 'author-1' } },
+    });
+    mockUsePresenceChannel.mockReturnValue({
+      members: createMemberMap(2),
+      currentChannel: 'presence-room-book-1',
+      isConnected: true,
+      connectionMode: 'realtime',
+      memberCount: 2,
+    });
+    render(<ReadingRoomPanel bookId="book-1" />);
+    await user.click(screen.getByTestId('join-room-button'));
+    await waitFor(() => {
+      expect(screen.getByTestId('leave-room-button')).toBeInTheDocument();
+    });
+
+    mockToast.mockClear();
+
+    // The author themselves triggers the join event
+    act(() => {
+      capturedOnAuthorJoin?.({ authorId: 'author-1', authorName: 'Jane Author' });
+    });
+
+    // Toast should NOT fire for the author themselves
+    expect(mockToast).not.toHaveBeenCalled();
+  });
+
+  it('does NOT show toast in disconnected mode when onAuthorJoin fires', async () => {
+    const user = userEvent.setup();
+    mockUsePresenceChannel.mockReturnValue({
+      members: createMemberMap(2),
+      currentChannel: 'presence-room-book-1',
+      isConnected: true,
+      connectionMode: 'disconnected',
+      memberCount: 2,
+    });
+    render(<ReadingRoomPanel bookId="book-1" />);
+    await user.click(screen.getByTestId('join-room-button'));
+    await waitFor(() => {
+      expect(screen.getByTestId('leave-room-button')).toBeInTheDocument();
+    });
+
+    mockToast.mockClear();
+
+    act(() => {
+      capturedOnAuthorJoin?.({ authorId: 'author-1', authorName: 'Jane Author' });
+    });
+
+    expect(mockToast).not.toHaveBeenCalled();
+  });
+
   it('passes onAuthorJoin and onAuthorLeave to usePresenceChannel', async () => {
     const user = userEvent.setup();
     render(<ReadingRoomPanel bookId="book-1" />);
